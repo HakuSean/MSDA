@@ -1,0 +1,936 @@
+name: "CaffeNet"
+layer {
+  name: "s1_data"
+  type: "ImageData"
+  top: "s1_data"
+  top: "s1_label"
+  include {
+    phase: TRAIN
+  }
+  transform_param {
+    crop_size: 227
+    mean_value: 104
+    mean_value: 117
+    mean_value: 123
+    mirror: true
+  } 
+  image_data_param {
+    source: "/home/alfa/Documents/msda/mywork/data/office/office_a.txt"
+    #root_folder: "/home/alfa/Documents/msda/office/amazon/images/"
+    new_height: 256
+    new_width: 256
+    is_color: true
+    batch_size: 128
+    shuffle: true
+  }
+}
+layer {
+  name: "s2_data"
+  type: "ImageData"
+  top: "s2_data"
+  top: "s2_label"
+  include {
+    phase: TRAIN
+  }
+  transform_param {
+    crop_size: 227
+    mean_value: 104
+    mean_value: 117
+    mean_value: 123
+    mirror: true
+  }
+  image_data_param {
+    source: "/home/alfa/Documents/msda/mywork/data/office/office_d.txt"
+    #root_folder: "/home/alfa/Documents/msda/office/webcam/images/"
+    new_height: 256
+    new_width: 256
+    is_color: true
+    batch_size: 128
+    shuffle: true
+  }
+}
+
+layer {
+  name: "target_data"
+  type: "ImageData"
+  top: "t_data"
+  top: "t_label"  # the labels are silenced. The authors did not want to change data layer
+  include {
+    phase: TRAIN
+  }
+  transform_param {
+    crop_size: 227
+    mean_value: 104
+    mean_value: 117
+    mean_value: 123
+
+  }
+  image_data_param {
+    batch_size: 128
+    source: "/home/alfa/Documents/msda/mywork/data/office/office_w.txt"
+    shuffle: true
+    is_color: true
+    new_height: 256
+    new_width: 256
+  
+  }
+}
+
+layer {
+  name: "data"
+  type: "ImageData"
+  top: "data"
+  top: "label"
+  include {
+    phase: TEST
+  }
+  transform_param {
+    crop_size: 224
+    mean_value: 104
+    mean_value: 117
+    mean_value: 123
+    mirror: false
+  }
+  image_data_param {
+    source: "/home/alfa/Documents/msda/mywork/data/office/office_w.txt"
+    #root_folder: "/home/alfa/Documents/msda/office/dslr/images/"
+    new_height: 256
+    new_width: 256
+    is_color: true
+    batch_size: 1
+    shuffle: false
+  }
+}
+
+#-------------------------data concatenation
+layer {
+  name: "data"
+  type: "Concat"
+  bottom: "s1_data"
+  bottom: "s2_data"
+  bottom: "t_data"
+  top: "data"
+  include {
+    phase: TRAIN
+  }
+  concat_param {
+    concat_dim: 0
+  }
+}
+layer {
+  name: "label"
+  type: "Concat"
+  bottom: "s1_label"
+  bottom: "s2_label"
+  top: "label"
+  include {
+    phase: TRAIN
+  }
+  concat_param {
+    concat_dim: 0
+  }
+}
+
+# ----------------------- start training
+layer {
+  name: "conv1"
+  type: "Convolution"
+  bottom: "data"
+  top: "conv1"
+  param {
+    lr_mult: 0
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 96
+    kernel_size: 11
+    stride: 4
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu1"
+  type: "ReLU"
+  bottom: "conv1"
+  top: "conv1"
+}
+layer {
+  name: "pool1"
+  type: "Pooling"
+  bottom: "conv1"
+  top: "pool1"
+  pooling_param {
+    pool: MAX
+    kernel_size: 3
+    stride: 2
+  }
+}
+layer {
+  name: "norm1"
+  type: "LRN"
+  bottom: "pool1"
+  top: "norm1"
+  lrn_param {
+    local_size: 5
+    alpha: 0.0001
+    beta: 0.75
+  }
+}
+layer {
+  name: "conv2"
+  type: "Convolution"
+  bottom: "norm1"
+  top: "conv2"
+  param {
+    lr_mult: 0
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 256
+    pad: 2
+    kernel_size: 5
+    group: 2
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 1
+    }
+  }
+}
+layer {
+  name: "relu2"
+  type: "ReLU"
+  bottom: "conv2"
+  top: "conv2"
+}
+layer {
+  name: "pool2"
+  type: "Pooling"
+  bottom: "conv2"
+  top: "pool2"
+  pooling_param {
+    pool: MAX
+    kernel_size: 3
+    stride: 2
+  }
+}
+layer {
+  name: "norm2"
+  type: "LRN"
+  bottom: "pool2"
+  top: "norm2"
+  lrn_param {
+    local_size: 5
+    alpha: 0.0001
+    beta: 0.75
+  }
+}
+
+# start to finetune
+
+layer {
+  name: "conv3"
+  type: "Convolution"
+  bottom: "norm2"
+  top: "conv3"
+  param {
+    lr_mult: 0
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 384
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu3"
+  type: "ReLU"
+  bottom: "conv3"
+  top: "conv3"
+}
+layer {
+  name: "conv4"
+  type: "Convolution"
+  bottom: "conv3"
+  top: "conv4"
+  param {
+    lr_mult: 0
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 384
+    pad: 1
+    kernel_size: 3
+    group: 2
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 1
+    }
+  }
+}
+layer {
+  name: "relu4"
+  type: "ReLU"
+  bottom: "conv4"
+  top: "conv4"
+}
+
+layer {
+  name: "conv5"
+  type: "Convolution"
+  bottom: "conv4"
+  top: "conv5"
+  param {
+    lr_mult: 0
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 256
+    pad: 1
+    kernel_size: 3
+    group: 2
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 1
+    }
+  }
+}
+layer {
+  name: "relu5"
+  type: "ReLU"
+  bottom: "conv5"
+  top: "conv5"
+}
+layer {
+  name: "pool5"
+  type: "Pooling"
+  bottom: "conv5"
+  top: "pool5"
+  pooling_param {
+    pool: MAX
+    kernel_size: 3
+    stride: 2
+  }
+}
+
+#-------------------------- fc
+layer {
+  name: "fc6"
+  type: "InnerProduct"
+  bottom: "pool5"
+  top: "fc6"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 4096
+    weight_filler {
+      type: "gaussian"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+layer{
+  name: "slicer_fc6"
+  type: "Slice"
+  bottom: "fc6"
+  top: "fc6_source"
+  top: "fc6_target"
+  include {
+    phase: TRAIN
+  }
+  slice_param {
+    axis: 0
+    slice_point: 256
+  }
+}
+
+layer{
+  name: "fc6_source/bn"
+  type: "BatchNorm"
+  bottom: "fc6_source"
+  top: "fc6_source/bn"
+  param {
+    lr_mult: 0.0
+  }
+  param {
+    lr_mult: 0.0
+  }
+  param {
+    lr_mult: 0.0
+  }
+  include {
+    phase: TRAIN
+  }
+  batch_norm_param {
+    moving_average_fraction: 0.95
+    }
+}
+
+layer{
+  name: "fc6_target/bn"
+  type: "BatchNorm"
+  bottom: "fc6_target"
+  top: "fc6_target/bn"
+  param {
+    lr_mult: 0.0
+  }
+  param {
+    lr_mult: 0.0
+  }
+  param {
+    lr_mult: 0.0
+  }
+  include {
+    phase: TRAIN
+  }
+  batch_norm_param {
+    moving_average_fraction: 0.95
+    
+    }
+}
+
+layer{
+  name: "concat_wbn_6"
+  type: "Concat"
+  bottom: "fc6_source/bn"
+  bottom: "fc6_target/bn"
+  top: "fc6/bn"
+  include {
+    phase: TRAIN
+  }
+  concat_param {
+    axis: 0
+    }
+}
+
+layer{
+  name: "fc6_target/bn"  # in test, use target/bn but different input/output
+  type: "BatchNorm"
+  bottom: "fc6"
+  top: "fc6/bn"
+  param {
+    lr_mult: 0.0
+  }
+  param {
+    lr_mult: 0.0
+  }
+  param {
+    lr_mult: 0.0
+  }
+  include {
+    phase: TEST
+  }
+  batch_norm_param {
+    moving_average_fraction: 0.95
+    }
+}
+
+layer{
+  name: "fc6_scale"
+  type: "Scale"
+  bottom: "fc6/bn"
+  top: "fc6/scale"
+  param {
+    lr_mult: 1.0
+    decay_mult: 0.0
+  }
+  param {
+    lr_mult: 1.0
+    decay_mult: 0.0
+  }
+  scale_param {
+    filler {
+            type: "constant"
+            value: 1
+      }
+        bias_filler {
+            type: "constant"
+            value: 0
+        }
+    axis: 1
+        num_axes: 1
+      bias_term: true
+    }
+}
+
+layer {
+  name: "relu6"
+  type: "ReLU"
+  bottom: "fc6/scale"
+  top: "fc6/relu"
+}
+
+layer {
+  name: "drop6"    # in boosting, there is no dropout
+  type: "Dropout"
+  bottom: "fc6/relu"
+  top: "fc6/out"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+
+# --------------------------------- fc7
+
+layer {
+  name: "fc7"
+  type: "InnerProduct"
+  bottom: "fc6/out"
+  top: "fc7"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 4096
+    weight_filler {
+      type: "gaussian"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+layer{
+  name: "slicer_fc7"
+  type: "Slice"
+  bottom: "fc7"
+  top: "fc7_source"
+  top: "fc7_target"
+  include {
+    phase: TRAIN
+  }
+  slice_param {
+    axis: 0
+    slice_point: 256
+  }
+}
+
+layer{
+  name: "fc7_source/bn"
+  type: "BatchNorm"
+  bottom: "fc7_source"
+  top: "fc7_source/bn"
+  param {
+    lr_mult: 0.0
+  }
+  param {
+    lr_mult: 0.0
+  }
+  param {
+    lr_mult: 0.0
+  }
+  include {
+    phase: TRAIN
+  }
+  batch_norm_param {
+    moving_average_fraction: 0.95
+    }
+}
+
+layer{
+  name: "fc7_target/bn"
+  type: "BatchNorm"
+  bottom: "fc7_target"
+  top: "fc7_target/bn"
+  param {
+    lr_mult: 0.0
+  }
+  param {
+    lr_mult: 0.0
+  }
+  param {
+    lr_mult: 0.0
+  }
+  include {
+    phase: TRAIN
+  }
+  batch_norm_param {
+    moving_average_fraction: 0.95
+    
+    }
+}
+
+layer{
+  name: "concat_wbn_7"
+  type: "Concat"
+  bottom: "fc7_source/bn"
+  bottom: "fc7_target/bn"
+  top: "fc7/bn"
+  include {
+    phase: TRAIN
+  }
+  concat_param {
+    axis: 0
+    }
+}
+
+layer{
+  name: "fc7_target/bn"  # in test, use target/bn but different input/output
+  type: "BatchNorm"
+  bottom: "fc7"
+  top: "fc7/bn"
+  param {
+    lr_mult: 0.0
+  }
+  param {
+    lr_mult: 0.0
+  }
+  param {
+    lr_mult: 0.0
+  }
+  include {
+    phase: TEST
+  }
+  batch_norm_param {
+    moving_average_fraction: 0.95
+    }
+}
+
+layer{
+  name: "fc7_scale"
+  type: "Scale"
+  bottom: "fc7/bn"
+  top: "fc7/scale"
+  param {
+    lr_mult: 1
+    decay_mult: 0.0
+  }
+  param {
+    lr_mult: 1
+    decay_mult: 0.0
+  }
+  scale_param {
+    filler {
+            type: "constant"
+            value: 1
+      }
+        bias_filler {
+            type: "constant"
+            value: 0
+        }
+    axis: 1
+        num_axes: 1
+      bias_term: true
+    }
+}
+
+layer {
+  name: "relu7"
+  type: "ReLU"
+  bottom: "fc7/scale"
+  top: "fc7/relu"
+}
+layer {
+  name: "drop7"
+  type: "Dropout"
+  bottom: "fc7/relu"
+  top: "fc7/out"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+
+# ------------------------- fc8
+
+layer {
+  name: "office-fc8"
+  type: "InnerProduct"
+  bottom: "fc7/out"
+  top: "fc8"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 31
+    # bias_term: false
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+layer{
+  name: "slicer_fc8"
+  type: "Slice"
+  bottom: "fc8"
+  top: "fc8_source"
+  top: "fc8_target"
+  include {
+    phase: TRAIN
+  }
+  slice_param {
+    axis: 0
+    slice_point: 256
+  }
+}
+
+layer{
+  name: "fc8_source/bn"
+  type: "BatchNorm"
+  bottom: "fc8_source"
+  top: "fc8_source/bn"
+  param {
+    lr_mult: 0.0
+  }
+  param {
+    lr_mult: 0.0
+  }
+  param {
+    lr_mult: 0.0
+  }
+  include {
+    phase: TRAIN
+  }
+  batch_norm_param {
+    moving_average_fraction: 0.95
+    }
+}
+
+layer{
+  name: "fc8_target/bn"
+  type: "BatchNorm"
+  bottom: "fc8_target"
+  top: "fc8_target/bn"
+  param {
+    lr_mult: 0.0
+  }
+  param {
+    lr_mult: 0.0
+  }
+  param {
+    lr_mult: 0.0
+  }
+  include {
+    phase: TRAIN
+  }
+  batch_norm_param {
+    moving_average_fraction: 0.95
+    
+    }
+}
+
+layer{
+  name: "concat_wbn_8"
+  type: "Concat"
+  bottom: "fc8_source/bn"
+  bottom: "fc8_target/bn"
+  top: "fc8/bn"
+  include {
+    phase: TRAIN
+  }
+  concat_param {
+    axis: 0
+    }
+}
+
+layer{
+  name: "fc8_target/bn"  # in test, use target/bn but different input/output
+  type: "BatchNorm"
+  bottom: "fc8"
+  top: "fc8/bn"
+  param {
+    lr_mult: 0.0
+  }
+  param {
+    lr_mult: 0.0
+  }
+  param {
+    lr_mult: 0.0
+  }
+  include {
+    phase: TEST
+  }
+  batch_norm_param {
+    moving_average_fraction: 0.95
+    }
+}
+layer{
+  name: "fc8_scale"
+  type: "Scale"
+  bottom: "fc8/bn"
+  top: "fc8/scale"
+  param {
+    lr_mult: 1.0
+    decay_mult: 0.0
+  }
+  param {
+    lr_mult: 1.0
+    decay_mult: 0.0
+  }
+  scale_param {
+    filler {
+            type: "constant"
+            value: 1
+      }
+        bias_filler {
+            type: "constant"
+            value: 0
+        }
+    axis: 1
+        num_axes: 1
+      bias_term: true
+    }
+}
+
+# layer {
+#   name: "prob"
+#   type: "Softmax"
+#   bottom: "fc8/scale"
+#   top: "prob"
+# }
+
+layer{
+  name: "slicer_scorer"
+  type: "Slice"
+  bottom: "fc8/scale"
+  top: "score_source"
+  top: "score_target"
+  include {
+    phase: TRAIN
+  }
+  slice_param {
+    axis: 0
+    slice_point: 256
+  }
+}
+
+layer{
+  name: "loss"
+  type: "SoftmaxWithLoss"
+  bottom: "score_source"
+  bottom: "label"
+  top: "loss"
+  loss_weight: 1  # by default 1
+  include {
+    phase: TRAIN
+  }
+}
+
+layer{
+  name: "entropy"
+  type: "EntropyLoss"
+  bottom: "score_target"
+  top: "entropy"
+  loss_weight: 0.8 # 0.8
+  include {
+    phase: TRAIN
+  }
+}
+# layer {
+#     name: "silence_target_score"
+#     type: "Silence"
+#     bottom: "score_target"
+#   include {
+#     phase: TRAIN
+#   }
+# }
+
+
+layer {
+  name: "accuracy"
+  type: "Accuracy"
+  bottom: "score_source"
+  bottom: "label"
+  top: "accuracy" 
+  include {
+    phase: TRAIN
+  }
+}
+
+layer {
+  name: "accuracy"
+  type: "Accuracy"
+  bottom: "fc8/scale"
+  bottom: "label"
+  top: "accuracy"
+  include {
+    phase: TEST
+  }
+}
+
+layer {
+    name: "silence_target"
+    type: "Silence"
+    bottom: "t_label"
+  include {
+    phase: TRAIN
+  }
+}
+
+

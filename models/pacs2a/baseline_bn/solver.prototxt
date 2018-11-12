@@ -1,0 +1,29 @@
+net: "/home/alfa/Documents/msda/mywork/models/pacs2a/baseline_bn/resnet18.prototxt"
+
+# Testing
+test_iter: 2048
+test_interval: 20
+
+# Schedule
+# base_lr: 0.0005
+# lr_policy: "step"
+# stepsize: 900
+# max_iter: 1200
+# gamma: 0.1
+
+base_lr: 0.0005
+lr_policy: "inv"
+gamma: 0.001
+power: 0.75
+max_iter: 1000
+
+# Solver
+momentum: 0.9
+weight_decay: 0.00005
+iter_size: 2 # the batch size is doubled here
+
+# Visualization
+display: 20
+snapshot: 0
+snapshot_prefix: "snapshots/pacs2a-baseline_bn-resnet18"
+solver_mode: GPU
