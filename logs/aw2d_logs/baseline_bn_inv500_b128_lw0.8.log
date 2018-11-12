@@ -1,0 +1,2888 @@
+I0829 16:15:02.287036 16769 caffe.cpp:204] Using GPUs 0
+I0829 16:15:02.307997 16769 caffe.cpp:209] GPU 0: GeForce GTX 1080 Ti
+I0829 16:15:02.626039 16769 solver.cpp:45] Initializing solver from parameters: 
+test_iter: 498
+test_interval: 20
+base_lr: 0.001
+display: 10
+max_iter: 500
+lr_policy: "inv"
+gamma: 0.001
+power: 0.75
+momentum: 0.9
+weight_decay: 0.0005
+snapshot: 0
+snapshot_prefix: "snapshots/aw2d-baseline_bn-alexnet"
+solver_mode: GPU
+device_id: 0
+net: "/home/alfa/Documents/msda/mywork/models/aw2d/baseline_bn/alexnet.prototxt"
+train_state {
+  level: 0
+  stage: ""
+}
+weights: "/home/alfa/Documents/msda/mywork/pretrain/bvlc_reference_caffenet.caffemodel"
+I0829 16:15:02.626080 16769 solver.cpp:102] Creating training net from net file: /home/alfa/Documents/msda/mywork/models/aw2d/baseline_bn/alexnet.prototxt
+I0829 16:15:02.626463 16769 upgrade_proto.cpp:79] Attempting to upgrade batch norm layers using deprecated params: /home/alfa/Documents/msda/mywork/models/aw2d/baseline_bn/alexnet.prototxt
+I0829 16:15:02.626474 16769 upgrade_proto.cpp:82] Successfully upgraded batch norm layers using deprecated params.
+I0829 16:15:02.626561 16769 net.cpp:294] The NetState phase (0) differed from the phase (1) specified by a rule in layer data
+I0829 16:15:02.626579 16769 net.cpp:294] The NetState phase (0) differed from the phase (1) specified by a rule in layer fc6_target/bn
+I0829 16:15:02.626588 16769 net.cpp:294] The NetState phase (0) differed from the phase (1) specified by a rule in layer fc7_target/bn
+I0829 16:15:02.626596 16769 net.cpp:294] The NetState phase (0) differed from the phase (1) specified by a rule in layer fc8_target/bn
+I0829 16:15:02.626607 16769 net.cpp:294] The NetState phase (0) differed from the phase (1) specified by a rule in layer accuracy
+I0829 16:15:02.626858 16769 net.cpp:51] Initializing net from parameters: 
+name: "CaffeNet"
+state {
+  phase: TRAIN
+  level: 0
+  stage: ""
+}
+layer {
+  name: "s1_data"
+  type: "ImageData"
+  top: "s1_data"
+  top: "s1_label"
+  include {
+    phase: TRAIN
+  }
+  transform_param {
+    mirror: true
+    crop_size: 227
+    mean_value: 104
+    mean_value: 117
+    mean_value: 123
+  }
+  image_data_param {
+    source: "/home/alfa/Documents/msda/mywork/data/office/office_a.txt"
+    batch_size: 128
+    shuffle: true
+    new_height: 256
+    new_width: 256
+    is_color: true
+  }
+}
+layer {
+  name: "s2_data"
+  type: "ImageData"
+  top: "s2_data"
+  top: "s2_label"
+  include {
+    phase: TRAIN
+  }
+  transform_param {
+    mirror: true
+    crop_size: 227
+    mean_value: 104
+    mean_value: 117
+    mean_value: 123
+  }
+  image_data_param {
+    source: "/home/alfa/Documents/msda/mywork/data/office/office_w.txt"
+    batch_size: 128
+    shuffle: true
+    new_height: 256
+    new_width: 256
+    is_color: true
+  }
+}
+layer {
+  name: "target_data"
+  type: "ImageData"
+  top: "t_data"
+  top: "t_label"
+  include {
+    phase: TRAIN
+  }
+  transform_param {
+    crop_size: 227
+    mean_value: 104
+    mean_value: 117
+    mean_value: 123
+  }
+  image_data_param {
+    source: "/home/alfa/Documents/msda/mywork/data/office/office_d.txt"
+    batch_size: 128
+    shuffle: true
+    new_height: 256
+    new_width: 256
+    is_color: true
+  }
+}
+layer {
+  name: "data"
+  type: "Concat"
+  bottom: "s1_data"
+  bottom: "s2_data"
+  bottom: "t_data"
+  top: "data"
+  include {
+    phase: TRAIN
+  }
+  concat_param {
+    concat_dim: 0
+  }
+}
+layer {
+  name: "label"
+  type: "Concat"
+  bottom: "s1_label"
+  bottom: "s2_label"
+  top: "label"
+  include {
+    phase: TRAIN
+  }
+  concat_param {
+    concat_dim: 0
+  }
+}
+layer {
+  name: "conv1"
+  type: "Convolution"
+  bottom: "data"
+  top: "conv1"
+  param {
+    lr_mult: 0
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 96
+    kernel_size: 11
+    stride: 4
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu1"
+  type: "ReLU"
+  bottom: "conv1"
+  top: "conv1"
+}
+layer {
+  name: "pool1"
+  type: "Pooling"
+  bottom: "conv1"
+  top: "pool1"
+  pooling_param {
+    pool: MAX
+    kernel_size: 3
+    stride: 2
+  }
+}
+layer {
+  name: "norm1"
+  type: "LRN"
+  bottom: "pool1"
+  top: "norm1"
+  lrn_param {
+    local_size: 5
+    alpha: 0.0001
+    beta: 0.75
+  }
+}
+layer {
+  name: "conv2"
+  type: "Convolution"
+  bottom: "norm1"
+  top: "conv2"
+  param {
+    lr_mult: 0
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 256
+    pad: 2
+    kernel_size: 5
+    group: 2
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 1
+    }
+  }
+}
+layer {
+  name: "relu2"
+  type: "ReLU"
+  bottom: "conv2"
+  top: "conv2"
+}
+layer {
+  name: "pool2"
+  type: "Pooling"
+  bottom: "conv2"
+  top: "pool2"
+  pooling_param {
+    pool: MAX
+    kernel_size: 3
+    stride: 2
+  }
+}
+layer {
+  name: "norm2"
+  type: "LRN"
+  bottom: "pool2"
+  top: "norm2"
+  lrn_param {
+    local_size: 5
+    alpha: 0.0001
+    beta: 0.75
+  }
+}
+layer {
+  name: "conv3"
+  type: "Convolution"
+  bottom: "norm2"
+  top: "conv3"
+  param {
+    lr_mult: 0
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 384
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu3"
+  type: "ReLU"
+  bottom: "conv3"
+  top: "conv3"
+}
+layer {
+  name: "conv4"
+  type: "Convolution"
+  bottom: "conv3"
+  top: "conv4"
+  param {
+    lr_mult: 0
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 384
+    pad: 1
+    kernel_size: 3
+    group: 2
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 1
+    }
+  }
+}
+layer {
+  name: "relu4"
+  type: "ReLU"
+  bottom: "conv4"
+  top: "conv4"
+}
+layer {
+  name: "conv5"
+  type: "Convolution"
+  bottom: "conv4"
+  top: "conv5"
+  param {
+    lr_mult: 0
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 256
+    pad: 1
+    kernel_size: 3
+    group: 2
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 1
+    }
+  }
+}
+layer {
+  name: "relu5"
+  type: "ReLU"
+  bottom: "conv5"
+  top: "conv5"
+}
+layer {
+  name: "pool5"
+  type: "Pooling"
+  bottom: "conv5"
+  top: "pool5"
+  pooling_param {
+    pool: MAX
+    kernel_size: 3
+    stride: 2
+  }
+}
+layer {
+  name: "fc6"
+  type: "InnerProduct"
+  bottom: "pool5"
+  top: "fc6"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 4096
+    weight_filler {
+      type: "gaussian"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "slicer_fc6"
+  type: "Slice"
+  bottom: "fc6"
+  top: "fc6_source"
+  top: "fc6_target"
+  include {
+    phase: TRAIN
+  }
+  slice_param {
+    slice_point: 256
+    axis: 0
+  }
+}
+layer {
+  name: "fc6_source/bn"
+  type: "BatchNorm"
+  bottom: "fc6_source"
+  top: "fc6_source/bn"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  include {
+    phase: TRAIN
+  }
+  batch_norm_param {
+    moving_average_fraction: 0.95
+  }
+}
+layer {
+  name: "fc6_target/bn"
+  type: "BatchNorm"
+  bottom: "fc6_target"
+  top: "fc6_target/bn"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  include {
+    phase: TRAIN
+  }
+  batch_norm_param {
+    moving_average_fraction: 0.95
+  }
+}
+layer {
+  name: "concat_wbn_6"
+  type: "Concat"
+  bottom: "fc6_source/bn"
+  bottom: "fc6_target/bn"
+  top: "fc6/bn"
+  include {
+    phase: TRAIN
+  }
+  concat_param {
+    axis: 0
+  }
+}
+layer {
+  name: "fc6_scale"
+  type: "Scale"
+  bottom: "fc6/bn"
+  top: "fc6/scale"
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  scale_param {
+    axis: 1
+    num_axes: 1
+    filler {
+      type: "constant"
+      value: 1
+    }
+    bias_term: true
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu6"
+  type: "ReLU"
+  bottom: "fc6/scale"
+  top: "fc6/relu"
+}
+layer {
+  name: "drop6"
+  type: "Dropout"
+  bottom: "fc6/relu"
+  top: "fc6/out"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+layer {
+  name: "fc7"
+  type: "InnerProduct"
+  bottom: "fc6/out"
+  top: "fc7"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 4096
+    weight_filler {
+      type: "gaussian"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "slicer_fc7"
+  type: "Slice"
+  bottom: "fc7"
+  top: "fc7_source"
+  top: "fc7_target"
+  include {
+    phase: TRAIN
+  }
+  slice_param {
+    slice_point: 256
+    axis: 0
+  }
+}
+layer {
+  name: "fc7_source/bn"
+  type: "BatchNorm"
+  bottom: "fc7_source"
+  top: "fc7_source/bn"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  include {
+    phase: TRAIN
+  }
+  batch_norm_param {
+    moving_average_fraction: 0.95
+  }
+}
+layer {
+  name: "fc7_target/bn"
+  type: "BatchNorm"
+  bottom: "fc7_target"
+  top: "fc7_target/bn"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  include {
+    phase: TRAIN
+  }
+  batch_norm_param {
+    moving_average_fraction: 0.95
+  }
+}
+layer {
+  name: "concat_wbn_7"
+  type: "Concat"
+  bottom: "fc7_source/bn"
+  bottom: "fc7_target/bn"
+  top: "fc7/bn"
+  include {
+    phase: TRAIN
+  }
+  concat_param {
+    axis: 0
+  }
+}
+layer {
+  name: "fc7_scale"
+  type: "Scale"
+  bottom: "fc7/bn"
+  top: "fc7/scale"
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  scale_param {
+    axis: 1
+    num_axes: 1
+    filler {
+      type: "constant"
+      value: 1
+    }
+    bias_term: true
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu7"
+  type: "ReLU"
+  bottom: "fc7/scale"
+  top: "fc7/relu"
+}
+layer {
+  name: "drop7"
+  type: "Dropout"
+  bottom: "fc7/relu"
+  top: "fc7/out"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+layer {
+  name: "office-fc8"
+  type: "InnerProduct"
+  bottom: "fc7/out"
+  top: "fc8"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 31
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "slicer_fc8"
+  type: "Slice"
+  bottom: "fc8"
+  top: "fc8_source"
+  top: "fc8_target"
+  include {
+    phase: TRAIN
+  }
+  slice_param {
+    slice_point: 256
+    axis: 0
+  }
+}
+layer {
+  name: "fc8_source/bn"
+  type: "BatchNorm"
+  bottom: "fc8_source"
+  top: "fc8_source/bn"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  include {
+    phase: TRAIN
+  }
+  batch_norm_param {
+    moving_average_fraction: 0.95
+  }
+}
+layer {
+  name: "fc8_target/bn"
+  type: "BatchNorm"
+  bottom: "fc8_target"
+  top: "fc8_target/bn"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  include {
+    phase: TRAIN
+  }
+  batch_norm_param {
+    moving_average_fraction: 0.95
+  }
+}
+layer {
+  name: "concat_wbn_8"
+  type: "Concat"
+  bottom: "fc8_source/bn"
+  bottom: "fc8_target/bn"
+  top: "fc8/bn"
+  include {
+    phase: TRAIN
+  }
+  concat_param {
+    axis: 0
+  }
+}
+layer {
+  name: "fc8_scale"
+  type: "Scale"
+  bottom: "fc8/bn"
+  top: "fc8/scale"
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  scale_param {
+    axis: 1
+    num_axes: 1
+    filler {
+      type: "constant"
+      value: 1
+    }
+    bias_term: true
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "slicer_scorer"
+  type: "Slice"
+  bottom: "fc8/scale"
+  top: "score_source"
+  top: "score_target"
+  include {
+    phase: TRAIN
+  }
+  slice_param {
+    slice_point: 256
+    axis: 0
+  }
+}
+layer {
+  name: "loss"
+  type: "SoftmaxWithLoss"
+  bottom: "score_source"
+  bottom: "label"
+  top: "loss"
+  loss_weight: 1
+  include {
+    phase: TRAIN
+  }
+}
+layer {
+  name: "entropy"
+  type: "EntropyLoss"
+  bottom: "score_target"
+  top: "entropy"
+  loss_weight: 0.8
+  include {
+    phase: TRAIN
+  }
+}
+layer {
+  name: "accuracy"
+  type: "Accuracy"
+  bottom: "score_source"
+  bottom: "label"
+  top: "accuracy"
+  include {
+    phase: TRAIN
+  }
+}
+layer {
+  name: "silence_target"
+  type: "Silence"
+  bottom: "t_label"
+  include {
+    phase: TRAIN
+  }
+}
+I0829 16:15:02.627110 16769 layer_factory.hpp:77] Creating layer s1_data
+I0829 16:15:02.627140 16769 net.cpp:84] Creating Layer s1_data
+I0829 16:15:02.627149 16769 net.cpp:380] s1_data -> s1_data
+I0829 16:15:02.627171 16769 net.cpp:380] s1_data -> s1_label
+I0829 16:15:02.627487 16769 image_data_layer.cpp:38] Opening file /home/alfa/Documents/msda/mywork/data/office/office_a.txt
+I0829 16:15:02.628851 16769 image_data_layer.cpp:53] Shuffling data
+I0829 16:15:02.629313 16769 image_data_layer.cpp:63] A total of 2817 images.
+I0829 16:15:02.635699 16769 image_data_layer.cpp:90] output data size: 128,3,227,227
+I0829 16:15:02.751014 16769 net.cpp:122] Setting up s1_data
+I0829 16:15:02.751042 16769 net.cpp:129] Top shape: 128 3 227 227 (19787136)
+I0829 16:15:02.751049 16769 net.cpp:129] Top shape: 128 (128)
+I0829 16:15:02.751054 16769 net.cpp:137] Memory required for data: 79149056
+I0829 16:15:02.751062 16769 layer_factory.hpp:77] Creating layer s2_data
+I0829 16:15:02.751085 16769 net.cpp:84] Creating Layer s2_data
+I0829 16:15:02.751094 16769 net.cpp:380] s2_data -> s2_data
+I0829 16:15:02.751108 16769 net.cpp:380] s2_data -> s2_label
+I0829 16:15:02.751122 16769 image_data_layer.cpp:38] Opening file /home/alfa/Documents/msda/mywork/data/office/office_w.txt
+I0829 16:15:02.751509 16769 image_data_layer.cpp:53] Shuffling data
+I0829 16:15:02.751646 16769 image_data_layer.cpp:63] A total of 795 images.
+I0829 16:15:02.759112 16769 image_data_layer.cpp:90] output data size: 128,3,227,227
+I0829 16:15:02.872560 16769 net.cpp:122] Setting up s2_data
+I0829 16:15:02.872586 16769 net.cpp:129] Top shape: 128 3 227 227 (19787136)
+I0829 16:15:02.872591 16769 net.cpp:129] Top shape: 128 (128)
+I0829 16:15:02.872596 16769 net.cpp:137] Memory required for data: 158298112
+I0829 16:15:02.872602 16769 layer_factory.hpp:77] Creating layer target_data
+I0829 16:15:02.872627 16769 net.cpp:84] Creating Layer target_data
+I0829 16:15:02.872635 16769 net.cpp:380] target_data -> t_data
+I0829 16:15:02.872649 16769 net.cpp:380] target_data -> t_label
+I0829 16:15:02.872665 16769 image_data_layer.cpp:38] Opening file /home/alfa/Documents/msda/mywork/data/office/office_d.txt
+I0829 16:15:02.872880 16769 image_data_layer.cpp:53] Shuffling data
+I0829 16:15:02.872967 16769 image_data_layer.cpp:63] A total of 498 images.
+I0829 16:15:02.881942 16769 image_data_layer.cpp:90] output data size: 128,3,227,227
+I0829 16:15:02.997537 16769 net.cpp:122] Setting up target_data
+I0829 16:15:02.997562 16769 net.cpp:129] Top shape: 128 3 227 227 (19787136)
+I0829 16:15:02.997570 16769 net.cpp:129] Top shape: 128 (128)
+I0829 16:15:02.997573 16769 net.cpp:137] Memory required for data: 237447168
+I0829 16:15:02.997579 16769 layer_factory.hpp:77] Creating layer data
+I0829 16:15:02.997594 16769 net.cpp:84] Creating Layer data
+I0829 16:15:02.997604 16769 net.cpp:406] data <- s1_data
+I0829 16:15:02.997622 16769 net.cpp:406] data <- s2_data
+I0829 16:15:02.997627 16769 net.cpp:406] data <- t_data
+I0829 16:15:02.997638 16769 net.cpp:380] data -> data
+I0829 16:15:02.997678 16769 net.cpp:122] Setting up data
+I0829 16:15:02.997686 16769 net.cpp:129] Top shape: 384 3 227 227 (59361408)
+I0829 16:15:02.997690 16769 net.cpp:137] Memory required for data: 474892800
+I0829 16:15:02.997696 16769 layer_factory.hpp:77] Creating layer label
+I0829 16:15:02.997709 16769 net.cpp:84] Creating Layer label
+I0829 16:15:02.997714 16769 net.cpp:406] label <- s1_label
+I0829 16:15:02.997735 16769 net.cpp:406] label <- s2_label
+I0829 16:15:02.997745 16769 net.cpp:380] label -> label
+I0829 16:15:02.997772 16769 net.cpp:122] Setting up label
+I0829 16:15:02.997779 16769 net.cpp:129] Top shape: 256 (256)
+I0829 16:15:02.997783 16769 net.cpp:137] Memory required for data: 474893824
+I0829 16:15:02.997789 16769 layer_factory.hpp:77] Creating layer label_label_0_split
+I0829 16:15:02.997800 16769 net.cpp:84] Creating Layer label_label_0_split
+I0829 16:15:02.997805 16769 net.cpp:406] label_label_0_split <- label
+I0829 16:15:02.997813 16769 net.cpp:380] label_label_0_split -> label_label_0_split_0
+I0829 16:15:02.997826 16769 net.cpp:380] label_label_0_split -> label_label_0_split_1
+I0829 16:15:02.997859 16769 net.cpp:122] Setting up label_label_0_split
+I0829 16:15:02.997866 16769 net.cpp:129] Top shape: 256 (256)
+I0829 16:15:02.997871 16769 net.cpp:129] Top shape: 256 (256)
+I0829 16:15:02.997879 16769 net.cpp:137] Memory required for data: 474895872
+I0829 16:15:02.997884 16769 layer_factory.hpp:77] Creating layer conv1
+I0829 16:15:02.997903 16769 net.cpp:84] Creating Layer conv1
+I0829 16:15:02.997910 16769 net.cpp:406] conv1 <- data
+I0829 16:15:02.997920 16769 net.cpp:380] conv1 -> conv1
+I0829 16:15:03.470234 16769 net.cpp:122] Setting up conv1
+I0829 16:15:03.470263 16769 net.cpp:129] Top shape: 384 96 55 55 (111513600)
+I0829 16:15:03.470268 16769 net.cpp:137] Memory required for data: 920950272
+I0829 16:15:03.470293 16769 layer_factory.hpp:77] Creating layer relu1
+I0829 16:15:03.470305 16769 net.cpp:84] Creating Layer relu1
+I0829 16:15:03.470312 16769 net.cpp:406] relu1 <- conv1
+I0829 16:15:03.470324 16769 net.cpp:367] relu1 -> conv1 (in-place)
+I0829 16:15:03.470504 16769 net.cpp:122] Setting up relu1
+I0829 16:15:03.470513 16769 net.cpp:129] Top shape: 384 96 55 55 (111513600)
+I0829 16:15:03.470518 16769 net.cpp:137] Memory required for data: 1367004672
+I0829 16:15:03.470523 16769 layer_factory.hpp:77] Creating layer pool1
+I0829 16:15:03.470538 16769 net.cpp:84] Creating Layer pool1
+I0829 16:15:03.470543 16769 net.cpp:406] pool1 <- conv1
+I0829 16:15:03.470551 16769 net.cpp:380] pool1 -> pool1
+I0829 16:15:03.470609 16769 net.cpp:122] Setting up pool1
+I0829 16:15:03.470618 16769 net.cpp:129] Top shape: 384 96 27 27 (26873856)
+I0829 16:15:03.470623 16769 net.cpp:137] Memory required for data: 1474500096
+I0829 16:15:03.470628 16769 layer_factory.hpp:77] Creating layer norm1
+I0829 16:15:03.470640 16769 net.cpp:84] Creating Layer norm1
+I0829 16:15:03.470647 16769 net.cpp:406] norm1 <- pool1
+I0829 16:15:03.470654 16769 net.cpp:380] norm1 -> norm1
+I0829 16:15:03.470840 16769 net.cpp:122] Setting up norm1
+I0829 16:15:03.470851 16769 net.cpp:129] Top shape: 384 96 27 27 (26873856)
+I0829 16:15:03.470857 16769 net.cpp:137] Memory required for data: 1581995520
+I0829 16:15:03.470863 16769 layer_factory.hpp:77] Creating layer conv2
+I0829 16:15:03.470880 16769 net.cpp:84] Creating Layer conv2
+I0829 16:15:03.470885 16769 net.cpp:406] conv2 <- norm1
+I0829 16:15:03.470896 16769 net.cpp:380] conv2 -> conv2
+I0829 16:15:03.476905 16769 net.cpp:122] Setting up conv2
+I0829 16:15:03.476927 16769 net.cpp:129] Top shape: 384 256 27 27 (71663616)
+I0829 16:15:03.476933 16769 net.cpp:137] Memory required for data: 1868649984
+I0829 16:15:03.476949 16769 layer_factory.hpp:77] Creating layer relu2
+I0829 16:15:03.476961 16769 net.cpp:84] Creating Layer relu2
+I0829 16:15:03.476969 16769 net.cpp:406] relu2 <- conv2
+I0829 16:15:03.476980 16769 net.cpp:367] relu2 -> conv2 (in-place)
+I0829 16:15:03.477497 16769 net.cpp:122] Setting up relu2
+I0829 16:15:03.477509 16769 net.cpp:129] Top shape: 384 256 27 27 (71663616)
+I0829 16:15:03.477524 16769 net.cpp:137] Memory required for data: 2155304448
+I0829 16:15:03.477530 16769 layer_factory.hpp:77] Creating layer pool2
+I0829 16:15:03.477541 16769 net.cpp:84] Creating Layer pool2
+I0829 16:15:03.477548 16769 net.cpp:406] pool2 <- conv2
+I0829 16:15:03.477556 16769 net.cpp:380] pool2 -> pool2
+I0829 16:15:03.477609 16769 net.cpp:122] Setting up pool2
+I0829 16:15:03.477617 16769 net.cpp:129] Top shape: 384 256 13 13 (16613376)
+I0829 16:15:03.477636 16769 net.cpp:137] Memory required for data: 2221757952
+I0829 16:15:03.477641 16769 layer_factory.hpp:77] Creating layer norm2
+I0829 16:15:03.477653 16769 net.cpp:84] Creating Layer norm2
+I0829 16:15:03.477659 16769 net.cpp:406] norm2 <- pool2
+I0829 16:15:03.477665 16769 net.cpp:380] norm2 -> norm2
+I0829 16:15:03.477845 16769 net.cpp:122] Setting up norm2
+I0829 16:15:03.477856 16769 net.cpp:129] Top shape: 384 256 13 13 (16613376)
+I0829 16:15:03.477862 16769 net.cpp:137] Memory required for data: 2288211456
+I0829 16:15:03.477867 16769 layer_factory.hpp:77] Creating layer conv3
+I0829 16:15:03.477882 16769 net.cpp:84] Creating Layer conv3
+I0829 16:15:03.477888 16769 net.cpp:406] conv3 <- norm2
+I0829 16:15:03.477897 16769 net.cpp:380] conv3 -> conv3
+I0829 16:15:03.486359 16769 net.cpp:122] Setting up conv3
+I0829 16:15:03.486385 16769 net.cpp:129] Top shape: 384 384 13 13 (24920064)
+I0829 16:15:03.486390 16769 net.cpp:137] Memory required for data: 2387891712
+I0829 16:15:03.486407 16769 layer_factory.hpp:77] Creating layer relu3
+I0829 16:15:03.486418 16769 net.cpp:84] Creating Layer relu3
+I0829 16:15:03.486425 16769 net.cpp:406] relu3 <- conv3
+I0829 16:15:03.486438 16769 net.cpp:367] relu3 -> conv3 (in-place)
+I0829 16:15:03.486604 16769 net.cpp:122] Setting up relu3
+I0829 16:15:03.486614 16769 net.cpp:129] Top shape: 384 384 13 13 (24920064)
+I0829 16:15:03.486618 16769 net.cpp:137] Memory required for data: 2487571968
+I0829 16:15:03.486624 16769 layer_factory.hpp:77] Creating layer conv4
+I0829 16:15:03.486645 16769 net.cpp:84] Creating Layer conv4
+I0829 16:15:03.486651 16769 net.cpp:406] conv4 <- conv3
+I0829 16:15:03.486661 16769 net.cpp:380] conv4 -> conv4
+I0829 16:15:03.494843 16769 net.cpp:122] Setting up conv4
+I0829 16:15:03.494868 16769 net.cpp:129] Top shape: 384 384 13 13 (24920064)
+I0829 16:15:03.494871 16769 net.cpp:137] Memory required for data: 2587252224
+I0829 16:15:03.494882 16769 layer_factory.hpp:77] Creating layer relu4
+I0829 16:15:03.494895 16769 net.cpp:84] Creating Layer relu4
+I0829 16:15:03.494904 16769 net.cpp:406] relu4 <- conv4
+I0829 16:15:03.494916 16769 net.cpp:367] relu4 -> conv4 (in-place)
+I0829 16:15:03.495438 16769 net.cpp:122] Setting up relu4
+I0829 16:15:03.495450 16769 net.cpp:129] Top shape: 384 384 13 13 (24920064)
+I0829 16:15:03.495457 16769 net.cpp:137] Memory required for data: 2686932480
+I0829 16:15:03.495462 16769 layer_factory.hpp:77] Creating layer conv5
+I0829 16:15:03.495477 16769 net.cpp:84] Creating Layer conv5
+I0829 16:15:03.495484 16769 net.cpp:406] conv5 <- conv4
+I0829 16:15:03.495496 16769 net.cpp:380] conv5 -> conv5
+I0829 16:15:03.501545 16769 net.cpp:122] Setting up conv5
+I0829 16:15:03.501570 16769 net.cpp:129] Top shape: 384 256 13 13 (16613376)
+I0829 16:15:03.501574 16769 net.cpp:137] Memory required for data: 2753385984
+I0829 16:15:03.501591 16769 layer_factory.hpp:77] Creating layer relu5
+I0829 16:15:03.501605 16769 net.cpp:84] Creating Layer relu5
+I0829 16:15:03.501611 16769 net.cpp:406] relu5 <- conv5
+I0829 16:15:03.501622 16769 net.cpp:367] relu5 -> conv5 (in-place)
+I0829 16:15:03.501791 16769 net.cpp:122] Setting up relu5
+I0829 16:15:03.501801 16769 net.cpp:129] Top shape: 384 256 13 13 (16613376)
+I0829 16:15:03.501806 16769 net.cpp:137] Memory required for data: 2819839488
+I0829 16:15:03.501811 16769 layer_factory.hpp:77] Creating layer pool5
+I0829 16:15:03.501824 16769 net.cpp:84] Creating Layer pool5
+I0829 16:15:03.501829 16769 net.cpp:406] pool5 <- conv5
+I0829 16:15:03.501837 16769 net.cpp:380] pool5 -> pool5
+I0829 16:15:03.501888 16769 net.cpp:122] Setting up pool5
+I0829 16:15:03.501897 16769 net.cpp:129] Top shape: 384 256 6 6 (3538944)
+I0829 16:15:03.501902 16769 net.cpp:137] Memory required for data: 2833995264
+I0829 16:15:03.501907 16769 layer_factory.hpp:77] Creating layer fc6
+I0829 16:15:03.501919 16769 net.cpp:84] Creating Layer fc6
+I0829 16:15:03.501925 16769 net.cpp:406] fc6 <- pool5
+I0829 16:15:03.501936 16769 net.cpp:380] fc6 -> fc6
+I0829 16:15:03.781692 16769 net.cpp:122] Setting up fc6
+I0829 16:15:03.781718 16769 net.cpp:129] Top shape: 384 4096 (1572864)
+I0829 16:15:03.781749 16769 net.cpp:137] Memory required for data: 2840286720
+I0829 16:15:03.781761 16769 layer_factory.hpp:77] Creating layer slicer_fc6
+I0829 16:15:03.781776 16769 net.cpp:84] Creating Layer slicer_fc6
+I0829 16:15:03.781783 16769 net.cpp:406] slicer_fc6 <- fc6
+I0829 16:15:03.781797 16769 net.cpp:380] slicer_fc6 -> fc6_source
+I0829 16:15:03.781813 16769 net.cpp:380] slicer_fc6 -> fc6_target
+I0829 16:15:03.781857 16769 net.cpp:122] Setting up slicer_fc6
+I0829 16:15:03.781864 16769 net.cpp:129] Top shape: 256 4096 (1048576)
+I0829 16:15:03.781870 16769 net.cpp:129] Top shape: 128 4096 (524288)
+I0829 16:15:03.781875 16769 net.cpp:137] Memory required for data: 2846578176
+I0829 16:15:03.781883 16769 layer_factory.hpp:77] Creating layer fc6_source/bn
+I0829 16:15:03.781895 16769 net.cpp:84] Creating Layer fc6_source/bn
+I0829 16:15:03.781903 16769 net.cpp:406] fc6_source/bn <- fc6_source
+I0829 16:15:03.781909 16769 net.cpp:380] fc6_source/bn -> fc6_source/bn
+I0829 16:15:03.782076 16769 net.cpp:122] Setting up fc6_source/bn
+I0829 16:15:03.782084 16769 net.cpp:129] Top shape: 256 4096 (1048576)
+I0829 16:15:03.782089 16769 net.cpp:137] Memory required for data: 2850772480
+I0829 16:15:03.782099 16769 layer_factory.hpp:77] Creating layer fc6_target/bn
+I0829 16:15:03.782109 16769 net.cpp:84] Creating Layer fc6_target/bn
+I0829 16:15:03.782114 16769 net.cpp:406] fc6_target/bn <- fc6_target
+I0829 16:15:03.782127 16769 net.cpp:380] fc6_target/bn -> fc6_target/bn
+I0829 16:15:03.782292 16769 net.cpp:122] Setting up fc6_target/bn
+I0829 16:15:03.782300 16769 net.cpp:129] Top shape: 128 4096 (524288)
+I0829 16:15:03.782305 16769 net.cpp:137] Memory required for data: 2852869632
+I0829 16:15:03.782321 16769 layer_factory.hpp:77] Creating layer concat_wbn_6
+I0829 16:15:03.782331 16769 net.cpp:84] Creating Layer concat_wbn_6
+I0829 16:15:03.782336 16769 net.cpp:406] concat_wbn_6 <- fc6_source/bn
+I0829 16:15:03.782344 16769 net.cpp:406] concat_wbn_6 <- fc6_target/bn
+I0829 16:15:03.782353 16769 net.cpp:380] concat_wbn_6 -> fc6/bn
+I0829 16:15:03.782377 16769 net.cpp:122] Setting up concat_wbn_6
+I0829 16:15:03.782384 16769 net.cpp:129] Top shape: 384 4096 (1572864)
+I0829 16:15:03.782388 16769 net.cpp:137] Memory required for data: 2859161088
+I0829 16:15:03.782393 16769 layer_factory.hpp:77] Creating layer fc6_scale
+I0829 16:15:03.782405 16769 net.cpp:84] Creating Layer fc6_scale
+I0829 16:15:03.782413 16769 net.cpp:406] fc6_scale <- fc6/bn
+I0829 16:15:03.782421 16769 net.cpp:380] fc6_scale -> fc6/scale
+I0829 16:15:03.782465 16769 layer_factory.hpp:77] Creating layer fc6_scale
+I0829 16:15:03.782572 16769 net.cpp:122] Setting up fc6_scale
+I0829 16:15:03.782582 16769 net.cpp:129] Top shape: 384 4096 (1572864)
+I0829 16:15:03.782585 16769 net.cpp:137] Memory required for data: 2865452544
+I0829 16:15:03.782595 16769 layer_factory.hpp:77] Creating layer relu6
+I0829 16:15:03.782605 16769 net.cpp:84] Creating Layer relu6
+I0829 16:15:03.782611 16769 net.cpp:406] relu6 <- fc6/scale
+I0829 16:15:03.782619 16769 net.cpp:380] relu6 -> fc6/relu
+I0829 16:15:03.782851 16769 net.cpp:122] Setting up relu6
+I0829 16:15:03.782862 16769 net.cpp:129] Top shape: 384 4096 (1572864)
+I0829 16:15:03.782867 16769 net.cpp:137] Memory required for data: 2871744000
+I0829 16:15:03.782872 16769 layer_factory.hpp:77] Creating layer drop6
+I0829 16:15:03.782883 16769 net.cpp:84] Creating Layer drop6
+I0829 16:15:03.782891 16769 net.cpp:406] drop6 <- fc6/relu
+I0829 16:15:03.782897 16769 net.cpp:380] drop6 -> fc6/out
+I0829 16:15:03.782943 16769 net.cpp:122] Setting up drop6
+I0829 16:15:03.782950 16769 net.cpp:129] Top shape: 384 4096 (1572864)
+I0829 16:15:03.782955 16769 net.cpp:137] Memory required for data: 2878035456
+I0829 16:15:03.782960 16769 layer_factory.hpp:77] Creating layer fc7
+I0829 16:15:03.782972 16769 net.cpp:84] Creating Layer fc7
+I0829 16:15:03.782980 16769 net.cpp:406] fc7 <- fc6/out
+I0829 16:15:03.782989 16769 net.cpp:380] fc7 -> fc7
+I0829 16:15:03.907415 16769 net.cpp:122] Setting up fc7
+I0829 16:15:03.907443 16769 net.cpp:129] Top shape: 384 4096 (1572864)
+I0829 16:15:03.907475 16769 net.cpp:137] Memory required for data: 2884326912
+I0829 16:15:03.907490 16769 layer_factory.hpp:77] Creating layer slicer_fc7
+I0829 16:15:03.907507 16769 net.cpp:84] Creating Layer slicer_fc7
+I0829 16:15:03.907516 16769 net.cpp:406] slicer_fc7 <- fc7
+I0829 16:15:03.907527 16769 net.cpp:380] slicer_fc7 -> fc7_source
+I0829 16:15:03.907543 16769 net.cpp:380] slicer_fc7 -> fc7_target
+I0829 16:15:03.907591 16769 net.cpp:122] Setting up slicer_fc7
+I0829 16:15:03.907599 16769 net.cpp:129] Top shape: 256 4096 (1048576)
+I0829 16:15:03.907605 16769 net.cpp:129] Top shape: 128 4096 (524288)
+I0829 16:15:03.907610 16769 net.cpp:137] Memory required for data: 2890618368
+I0829 16:15:03.907618 16769 layer_factory.hpp:77] Creating layer fc7_source/bn
+I0829 16:15:03.907630 16769 net.cpp:84] Creating Layer fc7_source/bn
+I0829 16:15:03.907636 16769 net.cpp:406] fc7_source/bn <- fc7_source
+I0829 16:15:03.907646 16769 net.cpp:380] fc7_source/bn -> fc7_source/bn
+I0829 16:15:03.907841 16769 net.cpp:122] Setting up fc7_source/bn
+I0829 16:15:03.907850 16769 net.cpp:129] Top shape: 256 4096 (1048576)
+I0829 16:15:03.907856 16769 net.cpp:137] Memory required for data: 2894812672
+I0829 16:15:03.907866 16769 layer_factory.hpp:77] Creating layer fc7_target/bn
+I0829 16:15:03.907882 16769 net.cpp:84] Creating Layer fc7_target/bn
+I0829 16:15:03.907891 16769 net.cpp:406] fc7_target/bn <- fc7_target
+I0829 16:15:03.907901 16769 net.cpp:380] fc7_target/bn -> fc7_target/bn
+I0829 16:15:03.908062 16769 net.cpp:122] Setting up fc7_target/bn
+I0829 16:15:03.908071 16769 net.cpp:129] Top shape: 128 4096 (524288)
+I0829 16:15:03.908076 16769 net.cpp:137] Memory required for data: 2896909824
+I0829 16:15:03.908087 16769 layer_factory.hpp:77] Creating layer concat_wbn_7
+I0829 16:15:03.908097 16769 net.cpp:84] Creating Layer concat_wbn_7
+I0829 16:15:03.908102 16769 net.cpp:406] concat_wbn_7 <- fc7_source/bn
+I0829 16:15:03.908108 16769 net.cpp:406] concat_wbn_7 <- fc7_target/bn
+I0829 16:15:03.908121 16769 net.cpp:380] concat_wbn_7 -> fc7/bn
+I0829 16:15:03.908151 16769 net.cpp:122] Setting up concat_wbn_7
+I0829 16:15:03.908159 16769 net.cpp:129] Top shape: 384 4096 (1572864)
+I0829 16:15:03.908164 16769 net.cpp:137] Memory required for data: 2903201280
+I0829 16:15:03.908169 16769 layer_factory.hpp:77] Creating layer fc7_scale
+I0829 16:15:03.908181 16769 net.cpp:84] Creating Layer fc7_scale
+I0829 16:15:03.908188 16769 net.cpp:406] fc7_scale <- fc7/bn
+I0829 16:15:03.908198 16769 net.cpp:380] fc7_scale -> fc7/scale
+I0829 16:15:03.908243 16769 layer_factory.hpp:77] Creating layer fc7_scale
+I0829 16:15:03.908346 16769 net.cpp:122] Setting up fc7_scale
+I0829 16:15:03.908354 16769 net.cpp:129] Top shape: 384 4096 (1572864)
+I0829 16:15:03.908360 16769 net.cpp:137] Memory required for data: 2909492736
+I0829 16:15:03.908368 16769 layer_factory.hpp:77] Creating layer relu7
+I0829 16:15:03.908380 16769 net.cpp:84] Creating Layer relu7
+I0829 16:15:03.908386 16769 net.cpp:406] relu7 <- fc7/scale
+I0829 16:15:03.908396 16769 net.cpp:380] relu7 -> fc7/relu
+I0829 16:15:03.909088 16769 net.cpp:122] Setting up relu7
+I0829 16:15:03.909101 16769 net.cpp:129] Top shape: 384 4096 (1572864)
+I0829 16:15:03.909106 16769 net.cpp:137] Memory required for data: 2915784192
+I0829 16:15:03.909111 16769 layer_factory.hpp:77] Creating layer drop7
+I0829 16:15:03.909124 16769 net.cpp:84] Creating Layer drop7
+I0829 16:15:03.909129 16769 net.cpp:406] drop7 <- fc7/relu
+I0829 16:15:03.909142 16769 net.cpp:380] drop7 -> fc7/out
+I0829 16:15:03.909188 16769 net.cpp:122] Setting up drop7
+I0829 16:15:03.909196 16769 net.cpp:129] Top shape: 384 4096 (1572864)
+I0829 16:15:03.909200 16769 net.cpp:137] Memory required for data: 2922075648
+I0829 16:15:03.909207 16769 layer_factory.hpp:77] Creating layer office-fc8
+I0829 16:15:03.909221 16769 net.cpp:84] Creating Layer office-fc8
+I0829 16:15:03.909229 16769 net.cpp:406] office-fc8 <- fc7/out
+I0829 16:15:03.909238 16769 net.cpp:380] office-fc8 -> fc8
+I0829 16:15:03.910174 16769 net.cpp:122] Setting up office-fc8
+I0829 16:15:03.910192 16769 net.cpp:129] Top shape: 384 31 (11904)
+I0829 16:15:03.910197 16769 net.cpp:137] Memory required for data: 2922123264
+I0829 16:15:03.910207 16769 layer_factory.hpp:77] Creating layer slicer_fc8
+I0829 16:15:03.910219 16769 net.cpp:84] Creating Layer slicer_fc8
+I0829 16:15:03.910228 16769 net.cpp:406] slicer_fc8 <- fc8
+I0829 16:15:03.910238 16769 net.cpp:380] slicer_fc8 -> fc8_source
+I0829 16:15:03.910250 16769 net.cpp:380] slicer_fc8 -> fc8_target
+I0829 16:15:03.910292 16769 net.cpp:122] Setting up slicer_fc8
+I0829 16:15:03.910300 16769 net.cpp:129] Top shape: 256 31 (7936)
+I0829 16:15:03.910305 16769 net.cpp:129] Top shape: 128 31 (3968)
+I0829 16:15:03.910310 16769 net.cpp:137] Memory required for data: 2922170880
+I0829 16:15:03.910315 16769 layer_factory.hpp:77] Creating layer fc8_source/bn
+I0829 16:15:03.910326 16769 net.cpp:84] Creating Layer fc8_source/bn
+I0829 16:15:03.910334 16769 net.cpp:406] fc8_source/bn <- fc8_source
+I0829 16:15:03.910343 16769 net.cpp:380] fc8_source/bn -> fc8_source/bn
+I0829 16:15:03.910511 16769 net.cpp:122] Setting up fc8_source/bn
+I0829 16:15:03.910518 16769 net.cpp:129] Top shape: 256 31 (7936)
+I0829 16:15:03.910522 16769 net.cpp:137] Memory required for data: 2922202624
+I0829 16:15:03.910540 16769 layer_factory.hpp:77] Creating layer fc8_target/bn
+I0829 16:15:03.910549 16769 net.cpp:84] Creating Layer fc8_target/bn
+I0829 16:15:03.910554 16769 net.cpp:406] fc8_target/bn <- fc8_target
+I0829 16:15:03.910570 16769 net.cpp:380] fc8_target/bn -> fc8_target/bn
+I0829 16:15:03.910743 16769 net.cpp:122] Setting up fc8_target/bn
+I0829 16:15:03.910753 16769 net.cpp:129] Top shape: 128 31 (3968)
+I0829 16:15:03.910756 16769 net.cpp:137] Memory required for data: 2922218496
+I0829 16:15:03.910768 16769 layer_factory.hpp:77] Creating layer concat_wbn_8
+I0829 16:15:03.910778 16769 net.cpp:84] Creating Layer concat_wbn_8
+I0829 16:15:03.910782 16769 net.cpp:406] concat_wbn_8 <- fc8_source/bn
+I0829 16:15:03.910789 16769 net.cpp:406] concat_wbn_8 <- fc8_target/bn
+I0829 16:15:03.910801 16769 net.cpp:380] concat_wbn_8 -> fc8/bn
+I0829 16:15:03.910823 16769 net.cpp:122] Setting up concat_wbn_8
+I0829 16:15:03.910831 16769 net.cpp:129] Top shape: 384 31 (11904)
+I0829 16:15:03.910835 16769 net.cpp:137] Memory required for data: 2922266112
+I0829 16:15:03.910841 16769 layer_factory.hpp:77] Creating layer fc8_scale
+I0829 16:15:03.910852 16769 net.cpp:84] Creating Layer fc8_scale
+I0829 16:15:03.910859 16769 net.cpp:406] fc8_scale <- fc8/bn
+I0829 16:15:03.910871 16769 net.cpp:380] fc8_scale -> fc8/scale
+I0829 16:15:03.910918 16769 layer_factory.hpp:77] Creating layer fc8_scale
+I0829 16:15:03.911023 16769 net.cpp:122] Setting up fc8_scale
+I0829 16:15:03.911032 16769 net.cpp:129] Top shape: 384 31 (11904)
+I0829 16:15:03.911036 16769 net.cpp:137] Memory required for data: 2922313728
+I0829 16:15:03.911048 16769 layer_factory.hpp:77] Creating layer slicer_scorer
+I0829 16:15:03.911059 16769 net.cpp:84] Creating Layer slicer_scorer
+I0829 16:15:03.911065 16769 net.cpp:406] slicer_scorer <- fc8/scale
+I0829 16:15:03.911073 16769 net.cpp:380] slicer_scorer -> score_source
+I0829 16:15:03.911088 16769 net.cpp:380] slicer_scorer -> score_target
+I0829 16:15:03.911125 16769 net.cpp:122] Setting up slicer_scorer
+I0829 16:15:03.911134 16769 net.cpp:129] Top shape: 256 31 (7936)
+I0829 16:15:03.911137 16769 net.cpp:129] Top shape: 128 31 (3968)
+I0829 16:15:03.911142 16769 net.cpp:137] Memory required for data: 2922361344
+I0829 16:15:03.911147 16769 layer_factory.hpp:77] Creating layer score_source_slicer_scorer_0_split
+I0829 16:15:03.911156 16769 net.cpp:84] Creating Layer score_source_slicer_scorer_0_split
+I0829 16:15:03.911164 16769 net.cpp:406] score_source_slicer_scorer_0_split <- score_source
+I0829 16:15:03.911176 16769 net.cpp:380] score_source_slicer_scorer_0_split -> score_source_slicer_scorer_0_split_0
+I0829 16:15:03.911186 16769 net.cpp:380] score_source_slicer_scorer_0_split -> score_source_slicer_scorer_0_split_1
+I0829 16:15:03.911221 16769 net.cpp:122] Setting up score_source_slicer_scorer_0_split
+I0829 16:15:03.911236 16769 net.cpp:129] Top shape: 256 31 (7936)
+I0829 16:15:03.911242 16769 net.cpp:129] Top shape: 256 31 (7936)
+I0829 16:15:03.911247 16769 net.cpp:137] Memory required for data: 2922424832
+I0829 16:15:03.911252 16769 layer_factory.hpp:77] Creating layer loss
+I0829 16:15:03.911260 16769 net.cpp:84] Creating Layer loss
+I0829 16:15:03.911270 16769 net.cpp:406] loss <- score_source_slicer_scorer_0_split_0
+I0829 16:15:03.911279 16769 net.cpp:406] loss <- label_label_0_split_0
+I0829 16:15:03.911288 16769 net.cpp:380] loss -> loss
+I0829 16:15:03.911301 16769 layer_factory.hpp:77] Creating layer loss
+I0829 16:15:03.912389 16769 net.cpp:122] Setting up loss
+I0829 16:15:03.912401 16769 net.cpp:129] Top shape: (1)
+I0829 16:15:03.912405 16769 net.cpp:132]     with loss weight 1
+I0829 16:15:03.912434 16769 net.cpp:137] Memory required for data: 2922424836
+I0829 16:15:03.912441 16769 layer_factory.hpp:77] Creating layer entropy
+I0829 16:15:03.912452 16769 net.cpp:84] Creating Layer entropy
+I0829 16:15:03.912461 16769 net.cpp:406] entropy <- score_target
+I0829 16:15:03.912469 16769 net.cpp:380] entropy -> entropy
+I0829 16:15:03.912484 16769 layer_factory.hpp:77] Creating layer entropy
+I0829 16:15:03.912753 16769 net.cpp:122] Setting up entropy
+I0829 16:15:03.912762 16769 net.cpp:129] Top shape: (1)
+I0829 16:15:03.912767 16769 net.cpp:132]     with loss weight 0.8
+I0829 16:15:03.912776 16769 net.cpp:137] Memory required for data: 2922424840
+I0829 16:15:03.912782 16769 layer_factory.hpp:77] Creating layer accuracy
+I0829 16:15:03.912796 16769 net.cpp:84] Creating Layer accuracy
+I0829 16:15:03.912801 16769 net.cpp:406] accuracy <- score_source_slicer_scorer_0_split_1
+I0829 16:15:03.912811 16769 net.cpp:406] accuracy <- label_label_0_split_1
+I0829 16:15:03.912824 16769 net.cpp:380] accuracy -> accuracy
+I0829 16:15:03.912839 16769 net.cpp:122] Setting up accuracy
+I0829 16:15:03.912847 16769 net.cpp:129] Top shape: (1)
+I0829 16:15:03.912852 16769 net.cpp:137] Memory required for data: 2922424844
+I0829 16:15:03.912858 16769 layer_factory.hpp:77] Creating layer silence_target
+I0829 16:15:03.912865 16769 net.cpp:84] Creating Layer silence_target
+I0829 16:15:03.912876 16769 net.cpp:406] silence_target <- t_label
+I0829 16:15:03.912886 16769 net.cpp:122] Setting up silence_target
+I0829 16:15:03.912894 16769 net.cpp:137] Memory required for data: 2922424844
+I0829 16:15:03.912902 16769 net.cpp:200] silence_target does not need backward computation.
+I0829 16:15:03.912912 16769 net.cpp:200] accuracy does not need backward computation.
+I0829 16:15:03.912921 16769 net.cpp:198] entropy needs backward computation.
+I0829 16:15:03.912928 16769 net.cpp:198] loss needs backward computation.
+I0829 16:15:03.912937 16769 net.cpp:198] score_source_slicer_scorer_0_split needs backward computation.
+I0829 16:15:03.912945 16769 net.cpp:198] slicer_scorer needs backward computation.
+I0829 16:15:03.912950 16769 net.cpp:198] fc8_scale needs backward computation.
+I0829 16:15:03.912957 16769 net.cpp:198] concat_wbn_8 needs backward computation.
+I0829 16:15:03.912966 16769 net.cpp:198] fc8_target/bn needs backward computation.
+I0829 16:15:03.912974 16769 net.cpp:198] fc8_source/bn needs backward computation.
+I0829 16:15:03.912981 16769 net.cpp:198] slicer_fc8 needs backward computation.
+I0829 16:15:03.912988 16769 net.cpp:198] office-fc8 needs backward computation.
+I0829 16:15:03.912995 16769 net.cpp:198] drop7 needs backward computation.
+I0829 16:15:03.913000 16769 net.cpp:198] relu7 needs backward computation.
+I0829 16:15:03.913008 16769 net.cpp:198] fc7_scale needs backward computation.
+I0829 16:15:03.913015 16769 net.cpp:198] concat_wbn_7 needs backward computation.
+I0829 16:15:03.913022 16769 net.cpp:198] fc7_target/bn needs backward computation.
+I0829 16:15:03.913028 16769 net.cpp:198] fc7_source/bn needs backward computation.
+I0829 16:15:03.913035 16769 net.cpp:198] slicer_fc7 needs backward computation.
+I0829 16:15:03.913044 16769 net.cpp:198] fc7 needs backward computation.
+I0829 16:15:03.913051 16769 net.cpp:198] drop6 needs backward computation.
+I0829 16:15:03.913069 16769 net.cpp:198] relu6 needs backward computation.
+I0829 16:15:03.913075 16769 net.cpp:198] fc6_scale needs backward computation.
+I0829 16:15:03.913082 16769 net.cpp:198] concat_wbn_6 needs backward computation.
+I0829 16:15:03.913091 16769 net.cpp:198] fc6_target/bn needs backward computation.
+I0829 16:15:03.913097 16769 net.cpp:198] fc6_source/bn needs backward computation.
+I0829 16:15:03.913103 16769 net.cpp:198] slicer_fc6 needs backward computation.
+I0829 16:15:03.913112 16769 net.cpp:198] fc6 needs backward computation.
+I0829 16:15:03.913120 16769 net.cpp:200] pool5 does not need backward computation.
+I0829 16:15:03.913125 16769 net.cpp:200] relu5 does not need backward computation.
+I0829 16:15:03.913136 16769 net.cpp:200] conv5 does not need backward computation.
+I0829 16:15:03.913143 16769 net.cpp:200] relu4 does not need backward computation.
+I0829 16:15:03.913149 16769 net.cpp:200] conv4 does not need backward computation.
+I0829 16:15:03.913158 16769 net.cpp:200] relu3 does not need backward computation.
+I0829 16:15:03.913168 16769 net.cpp:200] conv3 does not need backward computation.
+I0829 16:15:03.913175 16769 net.cpp:200] norm2 does not need backward computation.
+I0829 16:15:03.913183 16769 net.cpp:200] pool2 does not need backward computation.
+I0829 16:15:03.913192 16769 net.cpp:200] relu2 does not need backward computation.
+I0829 16:15:03.913197 16769 net.cpp:200] conv2 does not need backward computation.
+I0829 16:15:03.913203 16769 net.cpp:200] norm1 does not need backward computation.
+I0829 16:15:03.913210 16769 net.cpp:200] pool1 does not need backward computation.
+I0829 16:15:03.913218 16769 net.cpp:200] relu1 does not need backward computation.
+I0829 16:15:03.913225 16769 net.cpp:200] conv1 does not need backward computation.
+I0829 16:15:03.913233 16769 net.cpp:200] label_label_0_split does not need backward computation.
+I0829 16:15:03.913239 16769 net.cpp:200] label does not need backward computation.
+I0829 16:15:03.913249 16769 net.cpp:200] data does not need backward computation.
+I0829 16:15:03.913259 16769 net.cpp:200] target_data does not need backward computation.
+I0829 16:15:03.913269 16769 net.cpp:200] s2_data does not need backward computation.
+I0829 16:15:03.913275 16769 net.cpp:200] s1_data does not need backward computation.
+I0829 16:15:03.913280 16769 net.cpp:242] This network produces output accuracy
+I0829 16:15:03.913290 16769 net.cpp:242] This network produces output entropy
+I0829 16:15:03.913297 16769 net.cpp:242] This network produces output loss
+I0829 16:15:03.913331 16769 net.cpp:255] Network initialization done.
+I0829 16:15:03.913461 16769 solver.cpp:72] Finetuning from /home/alfa/Documents/msda/mywork/pretrain/bvlc_reference_caffenet.caffemodel
+I0829 16:15:04.057016 16769 upgrade_proto.cpp:46] Attempting to upgrade input file specified using deprecated transformation parameters: /home/alfa/Documents/msda/mywork/pretrain/bvlc_reference_caffenet.caffemodel
+I0829 16:15:04.057045 16769 upgrade_proto.cpp:49] Successfully upgraded file specified using deprecated data transformation parameters.
+W0829 16:15:04.057051 16769 upgrade_proto.cpp:51] Note that future Caffe releases will only support transform_param messages for transformation fields.
+I0829 16:15:04.057147 16769 upgrade_proto.cpp:55] Attempting to upgrade input file specified using deprecated V1LayerParameter: /home/alfa/Documents/msda/mywork/pretrain/bvlc_reference_caffenet.caffemodel
+I0829 16:15:04.286329 16769 upgrade_proto.cpp:63] Successfully upgraded file specified using deprecated V1LayerParameter
+I0829 16:15:04.329100 16769 net.cpp:744] Ignoring source layer fc8
+I0829 16:15:04.340049 16769 upgrade_proto.cpp:79] Attempting to upgrade batch norm layers using deprecated params: /home/alfa/Documents/msda/mywork/models/aw2d/baseline_bn/alexnet.prototxt
+I0829 16:15:04.340065 16769 upgrade_proto.cpp:82] Successfully upgraded batch norm layers using deprecated params.
+I0829 16:15:04.340072 16769 solver.cpp:190] Creating test net (#0) specified by net file: /home/alfa/Documents/msda/mywork/models/aw2d/baseline_bn/alexnet.prototxt
+I0829 16:15:04.340152 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer s1_data
+I0829 16:15:04.340158 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer s2_data
+I0829 16:15:04.340162 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer target_data
+I0829 16:15:04.340169 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer data
+I0829 16:15:04.340174 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer label
+I0829 16:15:04.340190 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer slicer_fc6
+I0829 16:15:04.340196 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer fc6_source/bn
+I0829 16:15:04.340201 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer fc6_target/bn
+I0829 16:15:04.340206 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer concat_wbn_6
+I0829 16:15:04.340214 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer slicer_fc7
+I0829 16:15:04.340221 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer fc7_source/bn
+I0829 16:15:04.340227 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer fc7_target/bn
+I0829 16:15:04.340232 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer concat_wbn_7
+I0829 16:15:04.340241 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer slicer_fc8
+I0829 16:15:04.340250 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer fc8_source/bn
+I0829 16:15:04.340255 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer fc8_target/bn
+I0829 16:15:04.340262 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer concat_wbn_8
+I0829 16:15:04.340268 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer slicer_scorer
+I0829 16:15:04.340275 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer loss
+I0829 16:15:04.340281 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer entropy
+I0829 16:15:04.340286 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer accuracy
+I0829 16:15:04.340293 16769 net.cpp:294] The NetState phase (1) differed from the phase (0) specified by a rule in layer silence_target
+I0829 16:15:04.340468 16769 net.cpp:51] Initializing net from parameters: 
+name: "CaffeNet"
+state {
+  phase: TEST
+}
+layer {
+  name: "data"
+  type: "ImageData"
+  top: "data"
+  top: "label"
+  include {
+    phase: TEST
+  }
+  transform_param {
+    mirror: false
+    crop_size: 224
+    mean_value: 104
+    mean_value: 117
+    mean_value: 123
+  }
+  image_data_param {
+    source: "/home/alfa/Documents/msda/mywork/data/office/office_d.txt"
+    batch_size: 1
+    shuffle: false
+    new_height: 256
+    new_width: 256
+    is_color: true
+  }
+}
+layer {
+  name: "conv1"
+  type: "Convolution"
+  bottom: "data"
+  top: "conv1"
+  param {
+    lr_mult: 0
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 96
+    kernel_size: 11
+    stride: 4
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu1"
+  type: "ReLU"
+  bottom: "conv1"
+  top: "conv1"
+}
+layer {
+  name: "pool1"
+  type: "Pooling"
+  bottom: "conv1"
+  top: "pool1"
+  pooling_param {
+    pool: MAX
+    kernel_size: 3
+    stride: 2
+  }
+}
+layer {
+  name: "norm1"
+  type: "LRN"
+  bottom: "pool1"
+  top: "norm1"
+  lrn_param {
+    local_size: 5
+    alpha: 0.0001
+    beta: 0.75
+  }
+}
+layer {
+  name: "conv2"
+  type: "Convolution"
+  bottom: "norm1"
+  top: "conv2"
+  param {
+    lr_mult: 0
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 256
+    pad: 2
+    kernel_size: 5
+    group: 2
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 1
+    }
+  }
+}
+layer {
+  name: "relu2"
+  type: "ReLU"
+  bottom: "conv2"
+  top: "conv2"
+}
+layer {
+  name: "pool2"
+  type: "Pooling"
+  bottom: "conv2"
+  top: "pool2"
+  pooling_param {
+    pool: MAX
+    kernel_size: 3
+    stride: 2
+  }
+}
+layer {
+  name: "norm2"
+  type: "LRN"
+  bottom: "pool2"
+  top: "norm2"
+  lrn_param {
+    local_size: 5
+    alpha: 0.0001
+    beta: 0.75
+  }
+}
+layer {
+  name: "conv3"
+  type: "Convolution"
+  bottom: "norm2"
+  top: "conv3"
+  param {
+    lr_mult: 0
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 384
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu3"
+  type: "ReLU"
+  bottom: "conv3"
+  top: "conv3"
+}
+layer {
+  name: "conv4"
+  type: "Convolution"
+  bottom: "conv3"
+  top: "conv4"
+  param {
+    lr_mult: 0
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 384
+    pad: 1
+    kernel_size: 3
+    group: 2
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 1
+    }
+  }
+}
+layer {
+  name: "relu4"
+  type: "ReLU"
+  bottom: "conv4"
+  top: "conv4"
+}
+layer {
+  name: "conv5"
+  type: "Convolution"
+  bottom: "conv4"
+  top: "conv5"
+  param {
+    lr_mult: 0
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 256
+    pad: 1
+    kernel_size: 3
+    group: 2
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 1
+    }
+  }
+}
+layer {
+  name: "relu5"
+  type: "ReLU"
+  bottom: "conv5"
+  top: "conv5"
+}
+layer {
+  name: "pool5"
+  type: "Pooling"
+  bottom: "conv5"
+  top: "pool5"
+  pooling_param {
+    pool: MAX
+    kernel_size: 3
+    stride: 2
+  }
+}
+layer {
+  name: "fc6"
+  type: "InnerProduct"
+  bottom: "pool5"
+  top: "fc6"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 4096
+    weight_filler {
+      type: "gaussian"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "fc6_target/bn"
+  type: "BatchNorm"
+  bottom: "fc6"
+  top: "fc6/bn"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  include {
+    phase: TEST
+  }
+  batch_norm_param {
+    moving_average_fraction: 0.95
+  }
+}
+layer {
+  name: "fc6_scale"
+  type: "Scale"
+  bottom: "fc6/bn"
+  top: "fc6/scale"
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  scale_param {
+    axis: 1
+    num_axes: 1
+    filler {
+      type: "constant"
+      value: 1
+    }
+    bias_term: true
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu6"
+  type: "ReLU"
+  bottom: "fc6/scale"
+  top: "fc6/relu"
+}
+layer {
+  name: "drop6"
+  type: "Dropout"
+  bottom: "fc6/relu"
+  top: "fc6/out"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+layer {
+  name: "fc7"
+  type: "InnerProduct"
+  bottom: "fc6/out"
+  top: "fc7"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 4096
+    weight_filler {
+      type: "gaussian"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "fc7_target/bn"
+  type: "BatchNorm"
+  bottom: "fc7"
+  top: "fc7/bn"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  include {
+    phase: TEST
+  }
+  batch_norm_param {
+    moving_average_fraction: 0.95
+  }
+}
+layer {
+  name: "fc7_scale"
+  type: "Scale"
+  bottom: "fc7/bn"
+  top: "fc7/scale"
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  scale_param {
+    axis: 1
+    num_axes: 1
+    filler {
+      type: "constant"
+      value: 1
+    }
+    bias_term: true
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu7"
+  type: "ReLU"
+  bottom: "fc7/scale"
+  top: "fc7/relu"
+}
+layer {
+  name: "drop7"
+  type: "Dropout"
+  bottom: "fc7/relu"
+  top: "fc7/out"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+layer {
+  name: "office-fc8"
+  type: "InnerProduct"
+  bottom: "fc7/out"
+  top: "fc8"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 31
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "fc8_target/bn"
+  type: "BatchNorm"
+  bottom: "fc8"
+  top: "fc8/bn"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  include {
+    phase: TEST
+  }
+  batch_norm_param {
+    moving_average_fraction: 0.95
+  }
+}
+layer {
+  name: "fc8_scale"
+  type: "Scale"
+  bottom: "fc8/bn"
+  top: "fc8/scale"
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  scale_param {
+    axis: 1
+    num_axes: 1
+    filler {
+      type: "constant"
+      value: 1
+    }
+    bias_term: true
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "accuracy"
+  type: "Accuracy"
+  bottom: "fc8/scale"
+  bottom: "label"
+  top: "accuracy"
+  include {
+    phase: TEST
+  }
+}
+I0829 16:15:04.340579 16769 layer_factory.hpp:77] Creating layer data
+I0829 16:15:04.340597 16769 net.cpp:84] Creating Layer data
+I0829 16:15:04.340605 16769 net.cpp:380] data -> data
+I0829 16:15:04.340620 16769 net.cpp:380] data -> label
+I0829 16:15:04.340631 16769 image_data_layer.cpp:38] Opening file /home/alfa/Documents/msda/mywork/data/office/office_d.txt
+I0829 16:15:04.340886 16769 image_data_layer.cpp:63] A total of 498 images.
+I0829 16:15:04.346032 16769 image_data_layer.cpp:90] output data size: 1,3,224,224
+I0829 16:15:04.348662 16769 net.cpp:122] Setting up data
+I0829 16:15:04.348680 16769 net.cpp:129] Top shape: 1 3 224 224 (150528)
+I0829 16:15:04.348686 16769 net.cpp:129] Top shape: 1 (1)
+I0829 16:15:04.348691 16769 net.cpp:137] Memory required for data: 602116
+I0829 16:15:04.348698 16769 layer_factory.hpp:77] Creating layer conv1
+I0829 16:15:04.348721 16769 net.cpp:84] Creating Layer conv1
+I0829 16:15:04.348727 16769 net.cpp:406] conv1 <- data
+I0829 16:15:04.348738 16769 net.cpp:380] conv1 -> conv1
+I0829 16:15:04.350152 16769 net.cpp:122] Setting up conv1
+I0829 16:15:04.350165 16769 net.cpp:129] Top shape: 1 96 54 54 (279936)
+I0829 16:15:04.350170 16769 net.cpp:137] Memory required for data: 1721860
+I0829 16:15:04.350185 16769 layer_factory.hpp:77] Creating layer relu1
+I0829 16:15:04.350195 16769 net.cpp:84] Creating Layer relu1
+I0829 16:15:04.350203 16769 net.cpp:406] relu1 <- conv1
+I0829 16:15:04.350210 16769 net.cpp:367] relu1 -> conv1 (in-place)
+I0829 16:15:04.350363 16769 net.cpp:122] Setting up relu1
+I0829 16:15:04.350371 16769 net.cpp:129] Top shape: 1 96 54 54 (279936)
+I0829 16:15:04.350378 16769 net.cpp:137] Memory required for data: 2841604
+I0829 16:15:04.350383 16769 layer_factory.hpp:77] Creating layer pool1
+I0829 16:15:04.350392 16769 net.cpp:84] Creating Layer pool1
+I0829 16:15:04.350400 16769 net.cpp:406] pool1 <- conv1
+I0829 16:15:04.350409 16769 net.cpp:380] pool1 -> pool1
+I0829 16:15:04.350451 16769 net.cpp:122] Setting up pool1
+I0829 16:15:04.350459 16769 net.cpp:129] Top shape: 1 96 27 27 (69984)
+I0829 16:15:04.350463 16769 net.cpp:137] Memory required for data: 3121540
+I0829 16:15:04.350482 16769 layer_factory.hpp:77] Creating layer norm1
+I0829 16:15:04.350492 16769 net.cpp:84] Creating Layer norm1
+I0829 16:15:04.350502 16769 net.cpp:406] norm1 <- pool1
+I0829 16:15:04.350508 16769 net.cpp:380] norm1 -> norm1
+I0829 16:15:04.351040 16769 net.cpp:122] Setting up norm1
+I0829 16:15:04.351052 16769 net.cpp:129] Top shape: 1 96 27 27 (69984)
+I0829 16:15:04.351058 16769 net.cpp:137] Memory required for data: 3401476
+I0829 16:15:04.351063 16769 layer_factory.hpp:77] Creating layer conv2
+I0829 16:15:04.351079 16769 net.cpp:84] Creating Layer conv2
+I0829 16:15:04.351086 16769 net.cpp:406] conv2 <- norm1
+I0829 16:15:04.351094 16769 net.cpp:380] conv2 -> conv2
+I0829 16:15:04.354923 16769 net.cpp:122] Setting up conv2
+I0829 16:15:04.354938 16769 net.cpp:129] Top shape: 1 256 27 27 (186624)
+I0829 16:15:04.354943 16769 net.cpp:137] Memory required for data: 4147972
+I0829 16:15:04.354954 16769 layer_factory.hpp:77] Creating layer relu2
+I0829 16:15:04.354965 16769 net.cpp:84] Creating Layer relu2
+I0829 16:15:04.354972 16769 net.cpp:406] relu2 <- conv2
+I0829 16:15:04.354979 16769 net.cpp:367] relu2 -> conv2 (in-place)
+I0829 16:15:04.355135 16769 net.cpp:122] Setting up relu2
+I0829 16:15:04.355144 16769 net.cpp:129] Top shape: 1 256 27 27 (186624)
+I0829 16:15:04.355149 16769 net.cpp:137] Memory required for data: 4894468
+I0829 16:15:04.355154 16769 layer_factory.hpp:77] Creating layer pool2
+I0829 16:15:04.355163 16769 net.cpp:84] Creating Layer pool2
+I0829 16:15:04.355171 16769 net.cpp:406] pool2 <- conv2
+I0829 16:15:04.355180 16769 net.cpp:380] pool2 -> pool2
+I0829 16:15:04.355226 16769 net.cpp:122] Setting up pool2
+I0829 16:15:04.355233 16769 net.cpp:129] Top shape: 1 256 13 13 (43264)
+I0829 16:15:04.355237 16769 net.cpp:137] Memory required for data: 5067524
+I0829 16:15:04.355243 16769 layer_factory.hpp:77] Creating layer norm2
+I0829 16:15:04.355253 16769 net.cpp:84] Creating Layer norm2
+I0829 16:15:04.355259 16769 net.cpp:406] norm2 <- pool2
+I0829 16:15:04.355267 16769 net.cpp:380] norm2 -> norm2
+I0829 16:15:04.355445 16769 net.cpp:122] Setting up norm2
+I0829 16:15:04.355454 16769 net.cpp:129] Top shape: 1 256 13 13 (43264)
+I0829 16:15:04.355458 16769 net.cpp:137] Memory required for data: 5240580
+I0829 16:15:04.355464 16769 layer_factory.hpp:77] Creating layer conv3
+I0829 16:15:04.355480 16769 net.cpp:84] Creating Layer conv3
+I0829 16:15:04.355485 16769 net.cpp:406] conv3 <- norm2
+I0829 16:15:04.355494 16769 net.cpp:380] conv3 -> conv3
+I0829 16:15:04.364003 16769 net.cpp:122] Setting up conv3
+I0829 16:15:04.364028 16769 net.cpp:129] Top shape: 1 384 13 13 (64896)
+I0829 16:15:04.364032 16769 net.cpp:137] Memory required for data: 5500164
+I0829 16:15:04.364049 16769 layer_factory.hpp:77] Creating layer relu3
+I0829 16:15:04.364060 16769 net.cpp:84] Creating Layer relu3
+I0829 16:15:04.364068 16769 net.cpp:406] relu3 <- conv3
+I0829 16:15:04.364075 16769 net.cpp:367] relu3 -> conv3 (in-place)
+I0829 16:15:04.364611 16769 net.cpp:122] Setting up relu3
+I0829 16:15:04.364624 16769 net.cpp:129] Top shape: 1 384 13 13 (64896)
+I0829 16:15:04.364629 16769 net.cpp:137] Memory required for data: 5759748
+I0829 16:15:04.364635 16769 layer_factory.hpp:77] Creating layer conv4
+I0829 16:15:04.364651 16769 net.cpp:84] Creating Layer conv4
+I0829 16:15:04.364658 16769 net.cpp:406] conv4 <- conv3
+I0829 16:15:04.364670 16769 net.cpp:380] conv4 -> conv4
+I0829 16:15:04.372648 16769 net.cpp:122] Setting up conv4
+I0829 16:15:04.372668 16769 net.cpp:129] Top shape: 1 384 13 13 (64896)
+I0829 16:15:04.372673 16769 net.cpp:137] Memory required for data: 6019332
+I0829 16:15:04.372684 16769 layer_factory.hpp:77] Creating layer relu4
+I0829 16:15:04.372695 16769 net.cpp:84] Creating Layer relu4
+I0829 16:15:04.372704 16769 net.cpp:406] relu4 <- conv4
+I0829 16:15:04.372714 16769 net.cpp:367] relu4 -> conv4 (in-place)
+I0829 16:15:04.372875 16769 net.cpp:122] Setting up relu4
+I0829 16:15:04.372885 16769 net.cpp:129] Top shape: 1 384 13 13 (64896)
+I0829 16:15:04.372889 16769 net.cpp:137] Memory required for data: 6278916
+I0829 16:15:04.372910 16769 layer_factory.hpp:77] Creating layer conv5
+I0829 16:15:04.372925 16769 net.cpp:84] Creating Layer conv5
+I0829 16:15:04.372932 16769 net.cpp:406] conv5 <- conv4
+I0829 16:15:04.372941 16769 net.cpp:380] conv5 -> conv5
+I0829 16:15:04.378875 16769 net.cpp:122] Setting up conv5
+I0829 16:15:04.378895 16769 net.cpp:129] Top shape: 1 256 13 13 (43264)
+I0829 16:15:04.378901 16769 net.cpp:137] Memory required for data: 6451972
+I0829 16:15:04.378916 16769 layer_factory.hpp:77] Creating layer relu5
+I0829 16:15:04.378926 16769 net.cpp:84] Creating Layer relu5
+I0829 16:15:04.378933 16769 net.cpp:406] relu5 <- conv5
+I0829 16:15:04.378942 16769 net.cpp:367] relu5 -> conv5 (in-place)
+I0829 16:15:04.379191 16769 net.cpp:122] Setting up relu5
+I0829 16:15:04.379200 16769 net.cpp:129] Top shape: 1 256 13 13 (43264)
+I0829 16:15:04.379206 16769 net.cpp:137] Memory required for data: 6625028
+I0829 16:15:04.379212 16769 layer_factory.hpp:77] Creating layer pool5
+I0829 16:15:04.379223 16769 net.cpp:84] Creating Layer pool5
+I0829 16:15:04.379228 16769 net.cpp:406] pool5 <- conv5
+I0829 16:15:04.379237 16769 net.cpp:380] pool5 -> pool5
+I0829 16:15:04.379289 16769 net.cpp:122] Setting up pool5
+I0829 16:15:04.379297 16769 net.cpp:129] Top shape: 1 256 6 6 (9216)
+I0829 16:15:04.379302 16769 net.cpp:137] Memory required for data: 6661892
+I0829 16:15:04.379307 16769 layer_factory.hpp:77] Creating layer fc6
+I0829 16:15:04.379323 16769 net.cpp:84] Creating Layer fc6
+I0829 16:15:04.379328 16769 net.cpp:406] fc6 <- pool5
+I0829 16:15:04.379336 16769 net.cpp:380] fc6 -> fc6
+I0829 16:15:04.657230 16769 net.cpp:122] Setting up fc6
+I0829 16:15:04.657256 16769 net.cpp:129] Top shape: 1 4096 (4096)
+I0829 16:15:04.657260 16769 net.cpp:137] Memory required for data: 6678276
+I0829 16:15:04.657271 16769 layer_factory.hpp:77] Creating layer fc6_target/bn
+I0829 16:15:04.657286 16769 net.cpp:84] Creating Layer fc6_target/bn
+I0829 16:15:04.657295 16769 net.cpp:406] fc6_target/bn <- fc6
+I0829 16:15:04.657307 16769 net.cpp:380] fc6_target/bn -> fc6/bn
+I0829 16:15:04.657485 16769 net.cpp:122] Setting up fc6_target/bn
+I0829 16:15:04.657493 16769 net.cpp:129] Top shape: 1 4096 (4096)
+I0829 16:15:04.657497 16769 net.cpp:137] Memory required for data: 6694660
+I0829 16:15:04.657508 16769 layer_factory.hpp:77] Creating layer fc6_scale
+I0829 16:15:04.657521 16769 net.cpp:84] Creating Layer fc6_scale
+I0829 16:15:04.657526 16769 net.cpp:406] fc6_scale <- fc6/bn
+I0829 16:15:04.657536 16769 net.cpp:380] fc6_scale -> fc6/scale
+I0829 16:15:04.657575 16769 layer_factory.hpp:77] Creating layer fc6_scale
+I0829 16:15:04.657680 16769 net.cpp:122] Setting up fc6_scale
+I0829 16:15:04.657688 16769 net.cpp:129] Top shape: 1 4096 (4096)
+I0829 16:15:04.657692 16769 net.cpp:137] Memory required for data: 6711044
+I0829 16:15:04.657707 16769 layer_factory.hpp:77] Creating layer relu6
+I0829 16:15:04.657717 16769 net.cpp:84] Creating Layer relu6
+I0829 16:15:04.657724 16769 net.cpp:406] relu6 <- fc6/scale
+I0829 16:15:04.657733 16769 net.cpp:380] relu6 -> fc6/relu
+I0829 16:15:04.658444 16769 net.cpp:122] Setting up relu6
+I0829 16:15:04.658457 16769 net.cpp:129] Top shape: 1 4096 (4096)
+I0829 16:15:04.658462 16769 net.cpp:137] Memory required for data: 6727428
+I0829 16:15:04.658466 16769 layer_factory.hpp:77] Creating layer drop6
+I0829 16:15:04.658476 16769 net.cpp:84] Creating Layer drop6
+I0829 16:15:04.658481 16769 net.cpp:406] drop6 <- fc6/relu
+I0829 16:15:04.658490 16769 net.cpp:380] drop6 -> fc6/out
+I0829 16:15:04.658535 16769 net.cpp:122] Setting up drop6
+I0829 16:15:04.658545 16769 net.cpp:129] Top shape: 1 4096 (4096)
+I0829 16:15:04.658550 16769 net.cpp:137] Memory required for data: 6743812
+I0829 16:15:04.658556 16769 layer_factory.hpp:77] Creating layer fc7
+I0829 16:15:04.658569 16769 net.cpp:84] Creating Layer fc7
+I0829 16:15:04.658574 16769 net.cpp:406] fc7 <- fc6/out
+I0829 16:15:04.658584 16769 net.cpp:380] fc7 -> fc7
+I0829 16:15:04.787272 16769 net.cpp:122] Setting up fc7
+I0829 16:15:04.787299 16769 net.cpp:129] Top shape: 1 4096 (4096)
+I0829 16:15:04.787303 16769 net.cpp:137] Memory required for data: 6760196
+I0829 16:15:04.787345 16769 layer_factory.hpp:77] Creating layer fc7_target/bn
+I0829 16:15:04.787362 16769 net.cpp:84] Creating Layer fc7_target/bn
+I0829 16:15:04.787371 16769 net.cpp:406] fc7_target/bn <- fc7
+I0829 16:15:04.787384 16769 net.cpp:380] fc7_target/bn -> fc7/bn
+I0829 16:15:04.787564 16769 net.cpp:122] Setting up fc7_target/bn
+I0829 16:15:04.787573 16769 net.cpp:129] Top shape: 1 4096 (4096)
+I0829 16:15:04.787577 16769 net.cpp:137] Memory required for data: 6776580
+I0829 16:15:04.787587 16769 layer_factory.hpp:77] Creating layer fc7_scale
+I0829 16:15:04.787600 16769 net.cpp:84] Creating Layer fc7_scale
+I0829 16:15:04.787608 16769 net.cpp:406] fc7_scale <- fc7/bn
+I0829 16:15:04.787617 16769 net.cpp:380] fc7_scale -> fc7/scale
+I0829 16:15:04.787662 16769 layer_factory.hpp:77] Creating layer fc7_scale
+I0829 16:15:04.787788 16769 net.cpp:122] Setting up fc7_scale
+I0829 16:15:04.787798 16769 net.cpp:129] Top shape: 1 4096 (4096)
+I0829 16:15:04.787803 16769 net.cpp:137] Memory required for data: 6792964
+I0829 16:15:04.787813 16769 layer_factory.hpp:77] Creating layer relu7
+I0829 16:15:04.787823 16769 net.cpp:84] Creating Layer relu7
+I0829 16:15:04.787829 16769 net.cpp:406] relu7 <- fc7/scale
+I0829 16:15:04.787838 16769 net.cpp:380] relu7 -> fc7/relu
+I0829 16:15:04.788074 16769 net.cpp:122] Setting up relu7
+I0829 16:15:04.788084 16769 net.cpp:129] Top shape: 1 4096 (4096)
+I0829 16:15:04.788089 16769 net.cpp:137] Memory required for data: 6809348
+I0829 16:15:04.788094 16769 layer_factory.hpp:77] Creating layer drop7
+I0829 16:15:04.788105 16769 net.cpp:84] Creating Layer drop7
+I0829 16:15:04.788112 16769 net.cpp:406] drop7 <- fc7/relu
+I0829 16:15:04.788122 16769 net.cpp:380] drop7 -> fc7/out
+I0829 16:15:04.788167 16769 net.cpp:122] Setting up drop7
+I0829 16:15:04.788177 16769 net.cpp:129] Top shape: 1 4096 (4096)
+I0829 16:15:04.788180 16769 net.cpp:137] Memory required for data: 6825732
+I0829 16:15:04.788187 16769 layer_factory.hpp:77] Creating layer office-fc8
+I0829 16:15:04.788198 16769 net.cpp:84] Creating Layer office-fc8
+I0829 16:15:04.788206 16769 net.cpp:406] office-fc8 <- fc7/out
+I0829 16:15:04.788216 16769 net.cpp:380] office-fc8 -> fc8
+I0829 16:15:04.790067 16769 net.cpp:122] Setting up office-fc8
+I0829 16:15:04.790081 16769 net.cpp:129] Top shape: 1 31 (31)
+I0829 16:15:04.790086 16769 net.cpp:137] Memory required for data: 6825856
+I0829 16:15:04.790096 16769 layer_factory.hpp:77] Creating layer fc8_target/bn
+I0829 16:15:04.790108 16769 net.cpp:84] Creating Layer fc8_target/bn
+I0829 16:15:04.790114 16769 net.cpp:406] fc8_target/bn <- fc8
+I0829 16:15:04.790125 16769 net.cpp:380] fc8_target/bn -> fc8/bn
+I0829 16:15:04.790305 16769 net.cpp:122] Setting up fc8_target/bn
+I0829 16:15:04.790315 16769 net.cpp:129] Top shape: 1 31 (31)
+I0829 16:15:04.790320 16769 net.cpp:137] Memory required for data: 6825980
+I0829 16:15:04.790333 16769 layer_factory.hpp:77] Creating layer fc8_scale
+I0829 16:15:04.790343 16769 net.cpp:84] Creating Layer fc8_scale
+I0829 16:15:04.790354 16769 net.cpp:406] fc8_scale <- fc8/bn
+I0829 16:15:04.790361 16769 net.cpp:380] fc8_scale -> fc8/scale
+I0829 16:15:04.790402 16769 layer_factory.hpp:77] Creating layer fc8_scale
+I0829 16:15:04.790504 16769 net.cpp:122] Setting up fc8_scale
+I0829 16:15:04.790514 16769 net.cpp:129] Top shape: 1 31 (31)
+I0829 16:15:04.790518 16769 net.cpp:137] Memory required for data: 6826104
+I0829 16:15:04.790529 16769 layer_factory.hpp:77] Creating layer accuracy
+I0829 16:15:04.790539 16769 net.cpp:84] Creating Layer accuracy
+I0829 16:15:04.790546 16769 net.cpp:406] accuracy <- fc8/scale
+I0829 16:15:04.790554 16769 net.cpp:406] accuracy <- label
+I0829 16:15:04.790563 16769 net.cpp:380] accuracy -> accuracy
+I0829 16:15:04.790575 16769 net.cpp:122] Setting up accuracy
+I0829 16:15:04.790585 16769 net.cpp:129] Top shape: (1)
+I0829 16:15:04.790590 16769 net.cpp:137] Memory required for data: 6826108
+I0829 16:15:04.790596 16769 net.cpp:200] accuracy does not need backward computation.
+I0829 16:15:04.790601 16769 net.cpp:200] fc8_scale does not need backward computation.
+I0829 16:15:04.790617 16769 net.cpp:200] fc8_target/bn does not need backward computation.
+I0829 16:15:04.790624 16769 net.cpp:200] office-fc8 does not need backward computation.
+I0829 16:15:04.790630 16769 net.cpp:200] drop7 does not need backward computation.
+I0829 16:15:04.790637 16769 net.cpp:200] relu7 does not need backward computation.
+I0829 16:15:04.790649 16769 net.cpp:200] fc7_scale does not need backward computation.
+I0829 16:15:04.790654 16769 net.cpp:200] fc7_target/bn does not need backward computation.
+I0829 16:15:04.790660 16769 net.cpp:200] fc7 does not need backward computation.
+I0829 16:15:04.790668 16769 net.cpp:200] drop6 does not need backward computation.
+I0829 16:15:04.790674 16769 net.cpp:200] relu6 does not need backward computation.
+I0829 16:15:04.790680 16769 net.cpp:200] fc6_scale does not need backward computation.
+I0829 16:15:04.790689 16769 net.cpp:200] fc6_target/bn does not need backward computation.
+I0829 16:15:04.790696 16769 net.cpp:200] fc6 does not need backward computation.
+I0829 16:15:04.790705 16769 net.cpp:200] pool5 does not need backward computation.
+I0829 16:15:04.790714 16769 net.cpp:200] relu5 does not need backward computation.
+I0829 16:15:04.790719 16769 net.cpp:200] conv5 does not need backward computation.
+I0829 16:15:04.790726 16769 net.cpp:200] relu4 does not need backward computation.
+I0829 16:15:04.790733 16769 net.cpp:200] conv4 does not need backward computation.
+I0829 16:15:04.790738 16769 net.cpp:200] relu3 does not need backward computation.
+I0829 16:15:04.790748 16769 net.cpp:200] conv3 does not need backward computation.
+I0829 16:15:04.790755 16769 net.cpp:200] norm2 does not need backward computation.
+I0829 16:15:04.790763 16769 net.cpp:200] pool2 does not need backward computation.
+I0829 16:15:04.790771 16769 net.cpp:200] relu2 does not need backward computation.
+I0829 16:15:04.790778 16769 net.cpp:200] conv2 does not need backward computation.
+I0829 16:15:04.790786 16769 net.cpp:200] norm1 does not need backward computation.
+I0829 16:15:04.790792 16769 net.cpp:200] pool1 does not need backward computation.
+I0829 16:15:04.790802 16769 net.cpp:200] relu1 does not need backward computation.
+I0829 16:15:04.790807 16769 net.cpp:200] conv1 does not need backward computation.
+I0829 16:15:04.790814 16769 net.cpp:200] data does not need backward computation.
+I0829 16:15:04.790820 16769 net.cpp:242] This network produces output accuracy
+I0829 16:15:04.790845 16769 net.cpp:255] Network initialization done.
+I0829 16:15:04.790936 16769 solver.cpp:72] Finetuning from /home/alfa/Documents/msda/mywork/pretrain/bvlc_reference_caffenet.caffemodel
+I0829 16:15:04.924191 16769 upgrade_proto.cpp:46] Attempting to upgrade input file specified using deprecated transformation parameters: /home/alfa/Documents/msda/mywork/pretrain/bvlc_reference_caffenet.caffemodel
+I0829 16:15:04.924214 16769 upgrade_proto.cpp:49] Successfully upgraded file specified using deprecated data transformation parameters.
+W0829 16:15:04.924219 16769 upgrade_proto.cpp:51] Note that future Caffe releases will only support transform_param messages for transformation fields.
+I0829 16:15:04.924239 16769 upgrade_proto.cpp:55] Attempting to upgrade input file specified using deprecated V1LayerParameter: /home/alfa/Documents/msda/mywork/pretrain/bvlc_reference_caffenet.caffemodel
+I0829 16:15:05.137221 16769 upgrade_proto.cpp:63] Successfully upgraded file specified using deprecated V1LayerParameter
+I0829 16:15:05.179453 16769 net.cpp:744] Ignoring source layer fc8
+I0829 16:15:05.179477 16769 net.cpp:744] Ignoring source layer loss
+I0829 16:15:05.190120 16769 solver.cpp:57] Solver scaffolding done.
+I0829 16:15:05.191402 16769 caffe.cpp:239] Starting Optimization
+I0829 16:15:05.191411 16769 solver.cpp:289] Solving CaffeNet
+I0829 16:15:05.191414 16769 solver.cpp:290] Learning Rate Policy: inv
+I0829 16:15:05.194962 16769 solver.cpp:347] Iteration 0, Testing net (#0)
+I0829 16:15:05.194974 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:15:05.194978 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:15:05.194996 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:15:05.195000 16769 net.cpp:676] Ignoring source layer label
+I0829 16:15:05.195004 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:15:05.210502 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:15:05.210518 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:15:05.210558 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:15:05.216864 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:15:05.216876 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:15:05.216910 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:15:05.217314 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:15:05.217322 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:15:05.217360 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:15:05.217386 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:15:05.217392 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:15:05.217397 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:15:05.217401 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:15:05.217406 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:15:05.247932 16769 blocking_queue.cpp:49] Waiting for data
+I0829 16:15:10.512190 16769 solver.cpp:414]     Test net output #0: accuracy = 0.0301205
+I0829 16:15:10.646486 16769 solver.cpp:239] Iteration 0 (-1.90505e-08 iter/s, 5.45475s/10 iters), loss = 6.20476
+I0829 16:15:10.646517 16769 solver.cpp:258]     Train net output #0: accuracy = 0.0273438
+I0829 16:15:10.646528 16769 solver.cpp:258]     Train net output #1: entropy = 2.9936 (* 0.8 = 2.39488 loss)
+I0829 16:15:10.646535 16769 solver.cpp:258]     Train net output #2: loss = 3.80988 (* 1 = 3.80988 loss)
+I0829 16:15:10.646549 16769 sgd_solver.cpp:112] Iteration 0, lr = 0.001
+I0829 16:15:16.321058 16769 solver.cpp:239] Iteration 10 (1.76236 iter/s, 5.67421s/10 iters), loss = 3.7675
+I0829 16:15:16.321105 16769 solver.cpp:258]     Train net output #0: accuracy = 0.652344
+I0829 16:15:16.321120 16769 solver.cpp:258]     Train net output #1: entropy = 2.60094 (* 0.8 = 2.08075 loss)
+I0829 16:15:16.321128 16769 solver.cpp:258]     Train net output #2: loss = 1.68675 (* 1 = 1.68675 loss)
+I0829 16:15:16.321142 16769 sgd_solver.cpp:112] Iteration 10, lr = 0.000992565
+I0829 16:15:23.356652 16769 solver.cpp:347] Iteration 20, Testing net (#0)
+I0829 16:15:23.356674 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:15:23.356680 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:15:23.356684 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:15:23.356689 16769 net.cpp:676] Ignoring source layer label
+I0829 16:15:23.356694 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:15:23.356705 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:15:23.356710 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:15:23.356715 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:15:23.356721 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:15:23.356726 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:15:23.356731 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:15:23.356737 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:15:23.356741 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:15:23.356747 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:15:23.356753 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:15:23.356756 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:15:23.356761 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:15:23.356766 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:15:23.356771 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:15:28.497053 16769 blocking_queue.cpp:49] Waiting for data
+I0829 16:15:28.571368 16769 solver.cpp:414]     Test net output #0: accuracy = 0.843373
+I0829 16:15:28.695147 16769 solver.cpp:239] Iteration 20 (0.808187 iter/s, 12.3734s/10 iters), loss = 3.18495
+I0829 16:15:28.695199 16769 solver.cpp:258]     Train net output #0: accuracy = 0.738281
+I0829 16:15:28.695209 16769 solver.cpp:258]     Train net output #1: entropy = 2.30818 (* 0.8 = 1.84654 loss)
+I0829 16:15:28.695214 16769 solver.cpp:258]     Train net output #2: loss = 1.33841 (* 1 = 1.33841 loss)
+I0829 16:15:28.695225 16769 sgd_solver.cpp:112] Iteration 20, lr = 0.000985258
+I0829 16:15:35.127280 16769 solver.cpp:239] Iteration 30 (1.55479 iter/s, 6.43172s/10 iters), loss = 2.93825
+I0829 16:15:35.128021 16769 solver.cpp:258]     Train net output #0: accuracy = 0.785156
+I0829 16:15:35.128033 16769 solver.cpp:258]     Train net output #1: entropy = 2.12158 (* 0.8 = 1.69727 loss)
+I0829 16:15:35.128041 16769 solver.cpp:258]     Train net output #2: loss = 1.24099 (* 1 = 1.24099 loss)
+I0829 16:15:35.128048 16769 sgd_solver.cpp:112] Iteration 30, lr = 0.000978075
+I0829 16:15:42.202340 16769 solver.cpp:347] Iteration 40, Testing net (#0)
+I0829 16:15:42.202363 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:15:42.202366 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:15:42.202369 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:15:42.202373 16769 net.cpp:676] Ignoring source layer label
+I0829 16:15:42.202375 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:15:42.202385 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:15:42.202389 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:15:42.202394 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:15:42.202397 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:15:42.202401 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:15:42.202406 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:15:42.202411 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:15:42.202414 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:15:42.202419 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:15:42.202424 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:15:42.202426 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:15:42.202430 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:15:42.202433 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:15:42.202436 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:15:47.480912 16769 solver.cpp:414]     Test net output #0: accuracy = 0.891566
+I0829 16:15:47.605420 16769 solver.cpp:239] Iteration 40 (0.801493 iter/s, 12.4767s/10 iters), loss = 2.85232
+I0829 16:15:47.605500 16769 solver.cpp:258]     Train net output #0: accuracy = 0.777344
+I0829 16:15:47.605521 16769 solver.cpp:258]     Train net output #1: entropy = 2.03486 (* 0.8 = 1.62789 loss)
+I0829 16:15:47.605536 16769 solver.cpp:258]     Train net output #2: loss = 1.22443 (* 1 = 1.22443 loss)
+I0829 16:15:47.605551 16769 sgd_solver.cpp:112] Iteration 40, lr = 0.000971013
+I0829 16:15:53.956481 16769 solver.cpp:239] Iteration 50 (1.57465 iter/s, 6.35063s/10 iters), loss = 2.56868
+I0829 16:15:53.956519 16769 solver.cpp:258]     Train net output #0: accuracy = 0.777344
+I0829 16:15:53.956531 16769 solver.cpp:258]     Train net output #1: entropy = 1.85094 (* 0.8 = 1.48075 loss)
+I0829 16:15:53.956537 16769 solver.cpp:258]     Train net output #2: loss = 1.08793 (* 1 = 1.08793 loss)
+I0829 16:15:53.956544 16769 sgd_solver.cpp:112] Iteration 50, lr = 0.000964069
+I0829 16:16:00.981659 16769 solver.cpp:347] Iteration 60, Testing net (#0)
+I0829 16:16:00.981684 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:16:00.981689 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:16:00.981694 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:16:00.981700 16769 net.cpp:676] Ignoring source layer label
+I0829 16:16:00.981704 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:16:00.981715 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:16:00.981720 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:16:00.981725 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:16:00.981735 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:16:00.981742 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:16:00.981748 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:16:00.981755 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:16:00.981760 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:16:00.981768 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:16:00.981793 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:16:00.981799 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:16:00.981806 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:16:00.981812 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:16:00.981822 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:16:07.829900 16769 blocking_queue.cpp:49] Waiting for data
+I0829 16:16:08.177937 16769 solver.cpp:414]     Test net output #0: accuracy = 0.901606
+I0829 16:16:08.294394 16769 solver.cpp:239] Iteration 60 (0.697492 iter/s, 14.3371s/10 iters), loss = 2.4263
+I0829 16:16:08.294454 16769 solver.cpp:258]     Train net output #0: accuracy = 0.8125
+I0829 16:16:08.294474 16769 solver.cpp:258]     Train net output #1: entropy = 1.79298 (* 0.8 = 1.43438 loss)
+I0829 16:16:08.294502 16769 solver.cpp:258]     Train net output #2: loss = 0.991921 (* 1 = 0.991921 loss)
+I0829 16:16:08.294517 16769 sgd_solver.cpp:112] Iteration 60, lr = 0.00095724
+I0829 16:16:14.816859 16769 solver.cpp:239] Iteration 70 (1.53326 iter/s, 6.52204s/10 iters), loss = 2.34468
+I0829 16:16:14.816905 16769 solver.cpp:258]     Train net output #0: accuracy = 0.824219
+I0829 16:16:14.816920 16769 solver.cpp:258]     Train net output #1: entropy = 1.73992 (* 0.8 = 1.39194 loss)
+I0829 16:16:14.816927 16769 solver.cpp:258]     Train net output #2: loss = 0.952738 (* 1 = 0.952738 loss)
+I0829 16:16:14.816941 16769 sgd_solver.cpp:112] Iteration 70, lr = 0.000950522
+I0829 16:16:22.263345 16769 solver.cpp:347] Iteration 80, Testing net (#0)
+I0829 16:16:22.263366 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:16:22.263371 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:16:22.263376 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:16:22.263381 16769 net.cpp:676] Ignoring source layer label
+I0829 16:16:22.263386 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:16:22.263397 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:16:22.263403 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:16:22.263411 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:16:22.263417 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:16:22.263427 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:16:22.263432 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:16:22.263440 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:16:22.263447 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:16:22.263453 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:16:22.263459 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:16:22.263465 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:16:22.263469 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:16:22.263475 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:16:22.263483 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:16:28.427999 16769 solver.cpp:414]     Test net output #0: accuracy = 0.905622
+I0829 16:16:28.554582 16769 solver.cpp:239] Iteration 80 (0.727965 iter/s, 13.7369s/10 iters), loss = 2.1226
+I0829 16:16:28.554641 16769 solver.cpp:258]     Train net output #0: accuracy = 0.835938
+I0829 16:16:28.554656 16769 solver.cpp:258]     Train net output #1: entropy = 1.52352 (* 0.8 = 1.21882 loss)
+I0829 16:16:28.554666 16769 solver.cpp:258]     Train net output #2: loss = 0.90378 (* 1 = 0.90378 loss)
+I0829 16:16:28.554674 16769 sgd_solver.cpp:112] Iteration 80, lr = 0.000943913
+I0829 16:16:34.765792 16769 solver.cpp:239] Iteration 90 (1.6101 iter/s, 6.2108s/10 iters), loss = 2.15651
+I0829 16:16:34.765839 16769 solver.cpp:258]     Train net output #0: accuracy = 0.855469
+I0829 16:16:34.765853 16769 solver.cpp:258]     Train net output #1: entropy = 1.57629 (* 0.8 = 1.26103 loss)
+I0829 16:16:34.765866 16769 solver.cpp:258]     Train net output #2: loss = 0.895478 (* 1 = 0.895478 loss)
+I0829 16:16:34.765875 16769 sgd_solver.cpp:112] Iteration 90, lr = 0.000937411
+I0829 16:16:41.706792 16769 solver.cpp:347] Iteration 100, Testing net (#0)
+I0829 16:16:41.706884 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:16:41.706889 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:16:41.706892 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:16:41.706897 16769 net.cpp:676] Ignoring source layer label
+I0829 16:16:41.706899 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:16:41.706907 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:16:41.706910 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:16:41.706914 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:16:41.706919 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:16:41.706923 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:16:41.706925 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:16:41.706930 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:16:41.706933 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:16:41.706936 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:16:41.706940 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:16:41.706944 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:16:41.706948 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:16:41.706951 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:16:41.706954 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:16:46.578449 16769 blocking_queue.cpp:49] Waiting for data
+I0829 16:16:47.236271 16769 solver.cpp:414]     Test net output #0: accuracy = 0.911647
+I0829 16:16:47.348696 16769 solver.cpp:239] Iteration 100 (0.794776 iter/s, 12.5822s/10 iters), loss = 2.08283
+I0829 16:16:47.348755 16769 solver.cpp:258]     Train net output #0: accuracy = 0.816406
+I0829 16:16:47.348769 16769 solver.cpp:258]     Train net output #1: entropy = 1.46481 (* 0.8 = 1.17185 loss)
+I0829 16:16:47.348775 16769 solver.cpp:258]     Train net output #2: loss = 0.910987 (* 1 = 0.910987 loss)
+I0829 16:16:47.348783 16769 sgd_solver.cpp:112] Iteration 100, lr = 0.000931013
+I0829 16:16:53.512895 16769 solver.cpp:239] Iteration 110 (1.62238 iter/s, 6.16379s/10 iters), loss = 1.93076
+I0829 16:16:53.512938 16769 solver.cpp:258]     Train net output #0: accuracy = 0.847656
+I0829 16:16:53.512948 16769 solver.cpp:258]     Train net output #1: entropy = 1.38088 (* 0.8 = 1.1047 loss)
+I0829 16:16:53.512957 16769 solver.cpp:258]     Train net output #2: loss = 0.826054 (* 1 = 0.826054 loss)
+I0829 16:16:53.512967 16769 sgd_solver.cpp:112] Iteration 110, lr = 0.000924715
+I0829 16:17:00.503757 16769 solver.cpp:347] Iteration 120, Testing net (#0)
+I0829 16:17:00.503778 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:17:00.503782 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:17:00.503787 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:17:00.503790 16769 net.cpp:676] Ignoring source layer label
+I0829 16:17:00.503793 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:17:00.503803 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:17:00.503806 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:17:00.503813 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:17:00.503816 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:17:00.503820 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:17:00.503825 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:17:00.503831 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:17:00.503835 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:17:00.503839 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:17:00.503841 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:17:00.503846 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:17:00.503851 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:17:00.503863 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:17:00.503866 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:17:05.726922 16769 solver.cpp:414]     Test net output #0: accuracy = 0.917671
+I0829 16:17:05.841385 16769 solver.cpp:239] Iteration 120 (0.811178 iter/s, 12.3278s/10 iters), loss = 1.93153
+I0829 16:17:05.841467 16769 solver.cpp:258]     Train net output #0: accuracy = 0.863281
+I0829 16:17:05.841490 16769 solver.cpp:258]     Train net output #1: entropy = 1.39134 (* 0.8 = 1.11307 loss)
+I0829 16:17:05.841507 16769 solver.cpp:258]     Train net output #2: loss = 0.818461 (* 1 = 0.818461 loss)
+I0829 16:17:05.841521 16769 sgd_solver.cpp:112] Iteration 120, lr = 0.000918516
+I0829 16:17:12.122730 16769 solver.cpp:239] Iteration 130 (1.59213 iter/s, 6.28091s/10 iters), loss = 1.86247
+I0829 16:17:12.122858 16769 solver.cpp:258]     Train net output #0: accuracy = 0.855469
+I0829 16:17:12.122870 16769 solver.cpp:258]     Train net output #1: entropy = 1.29876 (* 0.8 = 1.03901 loss)
+I0829 16:17:12.122877 16769 solver.cpp:258]     Train net output #2: loss = 0.82346 (* 1 = 0.82346 loss)
+I0829 16:17:12.122884 16769 sgd_solver.cpp:112] Iteration 130, lr = 0.000912412
+I0829 16:17:19.216142 16769 solver.cpp:347] Iteration 140, Testing net (#0)
+I0829 16:17:19.216161 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:17:19.216166 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:17:19.216168 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:17:19.216172 16769 net.cpp:676] Ignoring source layer label
+I0829 16:17:19.216176 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:17:19.216183 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:17:19.216187 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:17:19.216190 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:17:19.216195 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:17:19.216198 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:17:19.216202 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:17:19.216207 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:17:19.216210 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:17:19.216214 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:17:19.216218 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:17:19.216222 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:17:19.216226 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:17:19.216229 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:17:19.216233 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:17:23.519192 16769 blocking_queue.cpp:49] Waiting for data
+I0829 16:17:24.420904 16769 solver.cpp:414]     Test net output #0: accuracy = 0.917671
+I0829 16:17:24.547639 16769 solver.cpp:239] Iteration 140 (0.804888 iter/s, 12.4241s/10 iters), loss = 1.80434
+I0829 16:17:24.547686 16769 solver.cpp:258]     Train net output #0: accuracy = 0.851562
+I0829 16:17:24.547698 16769 solver.cpp:258]     Train net output #1: entropy = 1.30115 (* 0.8 = 1.04092 loss)
+I0829 16:17:24.547734 16769 solver.cpp:258]     Train net output #2: loss = 0.763418 (* 1 = 0.763418 loss)
+I0829 16:17:24.547750 16769 sgd_solver.cpp:112] Iteration 140, lr = 0.000906403
+I0829 16:17:31.334159 16769 solver.cpp:239] Iteration 150 (1.4736 iter/s, 6.78609s/10 iters), loss = 1.84802
+I0829 16:17:31.334192 16769 solver.cpp:258]     Train net output #0: accuracy = 0.863281
+I0829 16:17:31.334203 16769 solver.cpp:258]     Train net output #1: entropy = 1.29624 (* 0.8 = 1.03699 loss)
+I0829 16:17:31.334209 16769 solver.cpp:258]     Train net output #2: loss = 0.811028 (* 1 = 0.811028 loss)
+I0829 16:17:31.334218 16769 sgd_solver.cpp:112] Iteration 150, lr = 0.000900485
+I0829 16:17:38.484138 16769 solver.cpp:347] Iteration 160, Testing net (#0)
+I0829 16:17:38.484159 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:17:38.484163 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:17:38.484169 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:17:38.484172 16769 net.cpp:676] Ignoring source layer label
+I0829 16:17:38.484177 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:17:38.484186 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:17:38.484194 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:17:38.484197 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:17:38.484203 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:17:38.484211 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:17:38.484216 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:17:38.484221 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:17:38.484228 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:17:38.484256 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:17:38.484261 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:17:38.484264 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:17:38.484272 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:17:38.484279 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:17:38.484287 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:17:44.060235 16769 solver.cpp:414]     Test net output #0: accuracy = 0.915663
+I0829 16:17:44.173810 16769 solver.cpp:239] Iteration 160 (0.778883 iter/s, 12.8389s/10 iters), loss = 1.81504
+I0829 16:17:44.173882 16769 solver.cpp:258]     Train net output #0: accuracy = 0.855469
+I0829 16:17:44.173904 16769 solver.cpp:258]     Train net output #1: entropy = 1.30678 (* 0.8 = 1.04542 loss)
+I0829 16:17:44.173919 16769 solver.cpp:258]     Train net output #2: loss = 0.769621 (* 1 = 0.769621 loss)
+I0829 16:17:44.173934 16769 sgd_solver.cpp:112] Iteration 160, lr = 0.000894657
+I0829 16:17:50.439851 16769 solver.cpp:239] Iteration 170 (1.59601 iter/s, 6.26562s/10 iters), loss = 1.78857
+I0829 16:17:50.439883 16769 solver.cpp:258]     Train net output #0: accuracy = 0.839844
+I0829 16:17:50.439894 16769 solver.cpp:258]     Train net output #1: entropy = 1.26886 (* 0.8 = 1.01509 loss)
+I0829 16:17:50.439901 16769 solver.cpp:258]     Train net output #2: loss = 0.773489 (* 1 = 0.773489 loss)
+I0829 16:17:50.439910 16769 sgd_solver.cpp:112] Iteration 170, lr = 0.000888916
+I0829 16:17:57.548884 16769 solver.cpp:347] Iteration 180, Testing net (#0)
+I0829 16:17:57.548903 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:17:57.548907 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:17:57.548910 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:17:57.548914 16769 net.cpp:676] Ignoring source layer label
+I0829 16:17:57.548918 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:17:57.548925 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:17:57.548929 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:17:57.548933 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:17:57.548938 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:17:57.548943 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:17:57.548948 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:17:57.548951 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:17:57.548957 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:17:57.548961 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:17:57.548965 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:17:57.548969 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:17:57.548971 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:17:57.548974 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:17:57.548979 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:18:02.096153 16769 blocking_queue.cpp:49] Waiting for data
+I0829 16:18:03.467041 16769 solver.cpp:414]     Test net output #0: accuracy = 0.917671
+I0829 16:18:03.583281 16769 solver.cpp:239] Iteration 180 (0.760881 iter/s, 13.1427s/10 iters), loss = 1.68672
+I0829 16:18:03.583349 16769 solver.cpp:258]     Train net output #0: accuracy = 0.898438
+I0829 16:18:03.583371 16769 solver.cpp:258]     Train net output #1: entropy = 1.23701 (* 0.8 = 0.98961 loss)
+I0829 16:18:03.583389 16769 solver.cpp:258]     Train net output #2: loss = 0.697112 (* 1 = 0.697112 loss)
+I0829 16:18:03.583406 16769 sgd_solver.cpp:112] Iteration 180, lr = 0.00088326
+I0829 16:18:09.995730 16769 solver.cpp:239] Iteration 190 (1.55958 iter/s, 6.412s/10 iters), loss = 1.62563
+I0829 16:18:09.995770 16769 solver.cpp:258]     Train net output #0: accuracy = 0.894531
+I0829 16:18:09.995780 16769 solver.cpp:258]     Train net output #1: entropy = 1.15878 (* 0.8 = 0.927026 loss)
+I0829 16:18:09.995787 16769 solver.cpp:258]     Train net output #2: loss = 0.698602 (* 1 = 0.698602 loss)
+I0829 16:18:09.995795 16769 sgd_solver.cpp:112] Iteration 190, lr = 0.000877687
+I0829 16:18:17.548862 16769 solver.cpp:347] Iteration 200, Testing net (#0)
+I0829 16:18:17.549002 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:18:17.549010 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:18:17.549015 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:18:17.549019 16769 net.cpp:676] Ignoring source layer label
+I0829 16:18:17.549023 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:18:17.549033 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:18:17.549041 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:18:17.549046 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:18:17.549051 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:18:17.549057 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:18:17.549062 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:18:17.549067 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:18:17.549073 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:18:17.549078 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:18:17.549083 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:18:17.549088 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:18:17.549093 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:18:17.549099 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:18:17.549104 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:18:22.988185 16769 solver.cpp:414]     Test net output #0: accuracy = 0.923695
+I0829 16:18:23.115077 16769 solver.cpp:239] Iteration 200 (0.762278 iter/s, 13.1186s/10 iters), loss = 1.60578
+I0829 16:18:23.115272 16769 solver.cpp:258]     Train net output #0: accuracy = 0.867188
+I0829 16:18:23.115346 16769 solver.cpp:258]     Train net output #1: entropy = 1.10152 (* 0.8 = 0.881218 loss)
+I0829 16:18:23.115412 16769 solver.cpp:258]     Train net output #2: loss = 0.724559 (* 1 = 0.724559 loss)
+I0829 16:18:23.115473 16769 sgd_solver.cpp:112] Iteration 200, lr = 0.000872196
+I0829 16:18:29.670541 16769 solver.cpp:239] Iteration 210 (1.52558 iter/s, 6.5549s/10 iters), loss = 1.55107
+I0829 16:18:29.670589 16769 solver.cpp:258]     Train net output #0: accuracy = 0.902344
+I0829 16:18:29.670603 16769 solver.cpp:258]     Train net output #1: entropy = 1.10005 (* 0.8 = 0.880042 loss)
+I0829 16:18:29.670612 16769 solver.cpp:258]     Train net output #2: loss = 0.671027 (* 1 = 0.671027 loss)
+I0829 16:18:29.670622 16769 sgd_solver.cpp:112] Iteration 210, lr = 0.000866784
+I0829 16:18:37.092623 16769 solver.cpp:347] Iteration 220, Testing net (#0)
+I0829 16:18:37.092643 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:18:37.092648 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:18:37.092651 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:18:37.092654 16769 net.cpp:676] Ignoring source layer label
+I0829 16:18:37.092658 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:18:37.092667 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:18:37.092670 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:18:37.092674 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:18:37.092679 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:18:37.092681 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:18:37.092685 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:18:37.092689 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:18:37.092692 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:18:37.092696 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:18:37.092706 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:18:37.092710 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:18:37.092712 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:18:37.092715 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:18:37.092720 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:18:42.170620 16769 blocking_queue.cpp:49] Waiting for data
+I0829 16:18:43.631121 16769 solver.cpp:414]     Test net output #0: accuracy = 0.921687
+I0829 16:18:43.752461 16769 solver.cpp:239] Iteration 220 (0.710172 iter/s, 14.0811s/10 iters), loss = 1.50333
+I0829 16:18:43.752512 16769 solver.cpp:258]     Train net output #0: accuracy = 0.898438
+I0829 16:18:43.752543 16769 solver.cpp:258]     Train net output #1: entropy = 1.06186 (* 0.8 = 0.849487 loss)
+I0829 16:18:43.752557 16769 solver.cpp:258]     Train net output #2: loss = 0.653839 (* 1 = 0.653839 loss)
+I0829 16:18:43.752573 16769 sgd_solver.cpp:112] Iteration 220, lr = 0.00086145
+I0829 16:18:50.571705 16769 solver.cpp:239] Iteration 230 (1.46653 iter/s, 6.8188s/10 iters), loss = 1.48488
+I0829 16:18:50.571853 16769 solver.cpp:258]     Train net output #0: accuracy = 0.882812
+I0829 16:18:50.571871 16769 solver.cpp:258]     Train net output #1: entropy = 1.04717 (* 0.8 = 0.837734 loss)
+I0829 16:18:50.571880 16769 solver.cpp:258]     Train net output #2: loss = 0.647149 (* 1 = 0.647149 loss)
+I0829 16:18:50.571892 16769 sgd_solver.cpp:112] Iteration 230, lr = 0.000856192
+I0829 16:18:57.885437 16769 solver.cpp:347] Iteration 240, Testing net (#0)
+I0829 16:18:57.885465 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:18:57.885470 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:18:57.885475 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:18:57.885481 16769 net.cpp:676] Ignoring source layer label
+I0829 16:18:57.885485 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:18:57.885498 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:18:57.885505 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:18:57.885512 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:18:57.885520 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:18:57.885524 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:18:57.885534 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:18:57.885540 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:18:57.885545 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:18:57.885550 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:18:57.885560 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:18:57.885567 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:18:57.885572 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:18:57.885578 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:18:57.885584 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:19:03.138372 16769 solver.cpp:414]     Test net output #0: accuracy = 0.925703
+I0829 16:19:03.252894 16769 solver.cpp:239] Iteration 240 (0.788623 iter/s, 12.6803s/10 iters), loss = 1.55889
+I0829 16:19:03.252997 16769 solver.cpp:258]     Train net output #0: accuracy = 0.855469
+I0829 16:19:03.253032 16769 solver.cpp:258]     Train net output #1: entropy = 1.01742 (* 0.8 = 0.813937 loss)
+I0829 16:19:03.253058 16769 solver.cpp:258]     Train net output #2: loss = 0.744949 (* 1 = 0.744949 loss)
+I0829 16:19:03.253083 16769 sgd_solver.cpp:112] Iteration 240, lr = 0.000851008
+I0829 16:19:09.755913 16769 solver.cpp:239] Iteration 250 (1.53786 iter/s, 6.50255s/10 iters), loss = 1.43209
+I0829 16:19:09.755954 16769 solver.cpp:258]     Train net output #0: accuracy = 0.894531
+I0829 16:19:09.755964 16769 solver.cpp:258]     Train net output #1: entropy = 0.961491 (* 0.8 = 0.769193 loss)
+I0829 16:19:09.755970 16769 solver.cpp:258]     Train net output #2: loss = 0.662902 (* 1 = 0.662902 loss)
+I0829 16:19:09.755977 16769 sgd_solver.cpp:112] Iteration 250, lr = 0.000845897
+I0829 16:19:17.501425 16769 solver.cpp:347] Iteration 260, Testing net (#0)
+I0829 16:19:17.501451 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:19:17.501456 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:19:17.501461 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:19:17.501467 16769 net.cpp:676] Ignoring source layer label
+I0829 16:19:17.501472 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:19:17.501483 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:19:17.501487 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:19:17.501493 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:19:17.501499 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:19:17.501503 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:19:17.501508 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:19:17.501516 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:19:17.501520 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:19:17.501525 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:19:17.501559 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:19:17.501566 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:19:17.501570 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:19:17.501575 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:19:17.501580 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:19:21.251320 16769 blocking_queue.cpp:49] Waiting for data
+I0829 16:19:23.016902 16769 solver.cpp:414]     Test net output #0: accuracy = 0.927711
+I0829 16:19:23.143311 16769 solver.cpp:239] Iteration 260 (0.747015 iter/s, 13.3866s/10 iters), loss = 1.48157
+I0829 16:19:23.143345 16769 solver.cpp:258]     Train net output #0: accuracy = 0.882812
+I0829 16:19:23.143355 16769 solver.cpp:258]     Train net output #1: entropy = 0.989383 (* 0.8 = 0.791507 loss)
+I0829 16:19:23.143362 16769 solver.cpp:258]     Train net output #2: loss = 0.690066 (* 1 = 0.690066 loss)
+I0829 16:19:23.143368 16769 sgd_solver.cpp:112] Iteration 260, lr = 0.000840857
+I0829 16:19:30.046474 16769 solver.cpp:239] Iteration 270 (1.4487 iter/s, 6.90273s/10 iters), loss = 1.51974
+I0829 16:19:30.046516 16769 solver.cpp:258]     Train net output #0: accuracy = 0.859375
+I0829 16:19:30.046526 16769 solver.cpp:258]     Train net output #1: entropy = 0.928656 (* 0.8 = 0.742925 loss)
+I0829 16:19:30.046532 16769 solver.cpp:258]     Train net output #2: loss = 0.776814 (* 1 = 0.776814 loss)
+I0829 16:19:30.046540 16769 sgd_solver.cpp:112] Iteration 270, lr = 0.000835886
+I0829 16:19:37.538522 16769 solver.cpp:347] Iteration 280, Testing net (#0)
+I0829 16:19:37.538548 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:19:37.538553 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:19:37.538558 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:19:37.538568 16769 net.cpp:676] Ignoring source layer label
+I0829 16:19:37.538574 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:19:37.538590 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:19:37.538596 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:19:37.538609 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:19:37.538616 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:19:37.538626 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:19:37.538633 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:19:37.538646 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:19:37.538652 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:19:37.538664 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:19:37.538673 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:19:37.538684 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:19:37.538691 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:19:37.538702 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:19:37.538709 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:19:43.937077 16769 solver.cpp:414]     Test net output #0: accuracy = 0.923695
+I0829 16:19:44.064133 16769 solver.cpp:239] Iteration 280 (0.713428 iter/s, 14.0168s/10 iters), loss = 1.40684
+I0829 16:19:44.064225 16769 solver.cpp:258]     Train net output #0: accuracy = 0.886719
+I0829 16:19:44.064256 16769 solver.cpp:258]     Train net output #1: entropy = 0.983305 (* 0.8 = 0.786644 loss)
+I0829 16:19:44.064281 16769 solver.cpp:258]     Train net output #2: loss = 0.620199 (* 1 = 0.620199 loss)
+I0829 16:19:44.064302 16769 sgd_solver.cpp:112] Iteration 280, lr = 0.000830984
+I0829 16:19:50.718134 16769 solver.cpp:239] Iteration 290 (1.50296 iter/s, 6.65353s/10 iters), loss = 1.39621
+I0829 16:19:50.718189 16769 solver.cpp:258]     Train net output #0: accuracy = 0.886719
+I0829 16:19:50.718204 16769 solver.cpp:258]     Train net output #1: entropy = 0.9757 (* 0.8 = 0.78056 loss)
+I0829 16:19:50.718214 16769 solver.cpp:258]     Train net output #2: loss = 0.615646 (* 1 = 0.615646 loss)
+I0829 16:19:50.718224 16769 sgd_solver.cpp:112] Iteration 290, lr = 0.000826148
+I0829 16:19:58.182736 16769 solver.cpp:347] Iteration 300, Testing net (#0)
+I0829 16:19:58.182844 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:19:58.182850 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:19:58.182853 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:19:58.182857 16769 net.cpp:676] Ignoring source layer label
+I0829 16:19:58.182860 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:19:58.182868 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:19:58.182873 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:19:58.182875 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:19:58.182880 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:19:58.182883 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:19:58.182886 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:19:58.182893 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:19:58.182895 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:19:58.182899 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:19:58.182902 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:19:58.182905 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:19:58.182909 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:19:58.182912 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:19:58.182915 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:20:01.668033 16769 blocking_queue.cpp:49] Waiting for data
+I0829 16:20:03.838037 16769 solver.cpp:414]     Test net output #0: accuracy = 0.927711
+I0829 16:20:03.960289 16769 solver.cpp:239] Iteration 300 (0.755209 iter/s, 13.2414s/10 iters), loss = 1.23789
+I0829 16:20:03.960330 16769 solver.cpp:258]     Train net output #0: accuracy = 0.90625
+I0829 16:20:03.960340 16769 solver.cpp:258]     Train net output #1: entropy = 0.881872 (* 0.8 = 0.705498 loss)
+I0829 16:20:03.960347 16769 solver.cpp:258]     Train net output #2: loss = 0.532393 (* 1 = 0.532393 loss)
+I0829 16:20:03.960355 16769 sgd_solver.cpp:112] Iteration 300, lr = 0.000821377
+I0829 16:20:10.909736 16769 solver.cpp:239] Iteration 310 (1.43905 iter/s, 6.94901s/10 iters), loss = 1.29312
+I0829 16:20:10.909787 16769 solver.cpp:258]     Train net output #0: accuracy = 0.898438
+I0829 16:20:10.909802 16769 solver.cpp:258]     Train net output #1: entropy = 0.875341 (* 0.8 = 0.700273 loss)
+I0829 16:20:10.909816 16769 solver.cpp:258]     Train net output #2: loss = 0.592842 (* 1 = 0.592842 loss)
+I0829 16:20:10.909826 16769 sgd_solver.cpp:112] Iteration 310, lr = 0.00081667
+I0829 16:20:18.075949 16769 solver.cpp:347] Iteration 320, Testing net (#0)
+I0829 16:20:18.075978 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:20:18.075983 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:20:18.075987 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:20:18.075992 16769 net.cpp:676] Ignoring source layer label
+I0829 16:20:18.075997 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:20:18.076009 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:20:18.076014 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:20:18.076020 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:20:18.076026 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:20:18.076032 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:20:18.076038 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:20:18.076045 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:20:18.076052 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:20:18.076057 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:20:18.076062 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:20:18.076067 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:20:18.076074 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:20:18.076081 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:20:18.076086 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:20:23.681910 16769 solver.cpp:414]     Test net output #0: accuracy = 0.927711
+I0829 16:20:23.807924 16769 solver.cpp:239] Iteration 320 (0.775349 iter/s, 12.8974s/10 iters), loss = 1.25637
+I0829 16:20:23.808017 16769 solver.cpp:258]     Train net output #0: accuracy = 0.886719
+I0829 16:20:23.808048 16769 solver.cpp:258]     Train net output #1: entropy = 0.83986 (* 0.8 = 0.671888 loss)
+I0829 16:20:23.808070 16769 solver.cpp:258]     Train net output #2: loss = 0.584485 (* 1 = 0.584485 loss)
+I0829 16:20:23.808092 16769 sgd_solver.cpp:112] Iteration 320, lr = 0.000812025
+I0829 16:20:30.439461 16769 solver.cpp:239] Iteration 330 (1.50805 iter/s, 6.63107s/10 iters), loss = 1.35293
+I0829 16:20:30.439597 16769 solver.cpp:258]     Train net output #0: accuracy = 0.859375
+I0829 16:20:30.439618 16769 solver.cpp:258]     Train net output #1: entropy = 0.874378 (* 0.8 = 0.699502 loss)
+I0829 16:20:30.439630 16769 solver.cpp:258]     Train net output #2: loss = 0.653426 (* 1 = 0.653426 loss)
+I0829 16:20:30.439640 16769 sgd_solver.cpp:112] Iteration 330, lr = 0.000807442
+I0829 16:20:38.168129 16769 solver.cpp:347] Iteration 340, Testing net (#0)
+I0829 16:20:38.168149 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:20:38.168155 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:20:38.168159 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:20:38.168162 16769 net.cpp:676] Ignoring source layer label
+I0829 16:20:38.168165 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:20:38.168175 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:20:38.168179 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:20:38.168185 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:20:38.168190 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:20:38.168195 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:20:38.168200 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:20:38.168206 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:20:38.168210 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:20:38.168216 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:20:38.168221 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:20:38.168224 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:20:38.168228 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:20:38.168232 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:20:38.168241 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:20:41.415571 16769 blocking_queue.cpp:49] Waiting for data
+I0829 16:20:43.901917 16769 solver.cpp:414]     Test net output #0: accuracy = 0.927711
+I0829 16:20:44.014914 16769 solver.cpp:239] Iteration 340 (0.736672 iter/s, 13.5746s/10 iters), loss = 1.16529
+I0829 16:20:44.014953 16769 solver.cpp:258]     Train net output #0: accuracy = 0.921875
+I0829 16:20:44.014966 16769 solver.cpp:258]     Train net output #1: entropy = 0.797494 (* 0.8 = 0.637995 loss)
+I0829 16:20:44.014973 16769 solver.cpp:258]     Train net output #2: loss = 0.52729 (* 1 = 0.52729 loss)
+I0829 16:20:44.014984 16769 sgd_solver.cpp:112] Iteration 340, lr = 0.000802918
+I0829 16:20:51.177165 16769 solver.cpp:239] Iteration 350 (1.3963 iter/s, 7.16181s/10 iters), loss = 1.18704
+I0829 16:20:51.177211 16769 solver.cpp:258]     Train net output #0: accuracy = 0.917969
+I0829 16:20:51.177227 16769 solver.cpp:258]     Train net output #1: entropy = 0.811676 (* 0.8 = 0.649341 loss)
+I0829 16:20:51.177237 16769 solver.cpp:258]     Train net output #2: loss = 0.537702 (* 1 = 0.537702 loss)
+I0829 16:20:51.177245 16769 sgd_solver.cpp:112] Iteration 350, lr = 0.000798454
+I0829 16:20:59.435627 16769 solver.cpp:347] Iteration 360, Testing net (#0)
+I0829 16:20:59.435652 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:20:59.435660 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:20:59.435665 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:20:59.435670 16769 net.cpp:676] Ignoring source layer label
+I0829 16:20:59.435676 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:20:59.435689 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:20:59.435695 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:20:59.435700 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:20:59.435708 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:20:59.435747 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:20:59.435753 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:20:59.435760 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:20:59.435766 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:20:59.435801 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:20:59.435807 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:20:59.435812 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:20:59.435817 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:20:59.435827 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:20:59.435833 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:21:04.959362 16769 solver.cpp:414]     Test net output #0: accuracy = 0.927711
+I0829 16:21:05.073540 16769 solver.cpp:239] Iteration 360 (0.719654 iter/s, 13.8956s/10 iters), loss = 1.08857
+I0829 16:21:05.073599 16769 solver.cpp:258]     Train net output #0: accuracy = 0.921875
+I0829 16:21:05.073614 16769 solver.cpp:258]     Train net output #1: entropy = 0.710969 (* 0.8 = 0.568775 loss)
+I0829 16:21:05.073624 16769 solver.cpp:258]     Train net output #2: loss = 0.519794 (* 1 = 0.519794 loss)
+I0829 16:21:05.073633 16769 sgd_solver.cpp:112] Iteration 360, lr = 0.000794046
+I0829 16:21:11.895365 16769 solver.cpp:239] Iteration 370 (1.46598 iter/s, 6.82138s/10 iters), loss = 1.16834
+I0829 16:21:11.895459 16769 solver.cpp:258]     Train net output #0: accuracy = 0.898438
+I0829 16:21:11.895488 16769 solver.cpp:258]     Train net output #1: entropy = 0.779846 (* 0.8 = 0.623877 loss)
+I0829 16:21:11.895510 16769 solver.cpp:258]     Train net output #2: loss = 0.544458 (* 1 = 0.544458 loss)
+I0829 16:21:11.895534 16769 sgd_solver.cpp:112] Iteration 370, lr = 0.000789695
+I0829 16:21:19.192751 16769 solver.cpp:347] Iteration 380, Testing net (#0)
+I0829 16:21:19.192780 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:21:19.192785 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:21:19.192791 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:21:19.192796 16769 net.cpp:676] Ignoring source layer label
+I0829 16:21:19.192801 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:21:19.192813 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:21:19.192818 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:21:19.192823 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:21:19.192831 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:21:19.192836 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:21:19.192842 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:21:19.192849 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:21:19.192857 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:21:19.192862 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:21:19.192867 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:21:19.192872 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:21:19.192876 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:21:19.192880 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:21:19.192886 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:21:22.016739 16769 blocking_queue.cpp:49] Waiting for data
+I0829 16:21:24.739311 16769 solver.cpp:414]     Test net output #0: accuracy = 0.927711
+I0829 16:21:24.864418 16769 solver.cpp:239] Iteration 380 (0.771115 iter/s, 12.9682s/10 iters), loss = 1.07159
+I0829 16:21:24.864471 16769 solver.cpp:258]     Train net output #0: accuracy = 0.917969
+I0829 16:21:24.864487 16769 solver.cpp:258]     Train net output #1: entropy = 0.727285 (* 0.8 = 0.581828 loss)
+I0829 16:21:24.864500 16769 solver.cpp:258]     Train net output #2: loss = 0.489762 (* 1 = 0.489762 loss)
+I0829 16:21:24.864514 16769 sgd_solver.cpp:112] Iteration 380, lr = 0.0007854
+I0829 16:21:31.669335 16769 solver.cpp:239] Iteration 390 (1.46962 iter/s, 6.80447s/10 iters), loss = 1.06288
+I0829 16:21:31.669378 16769 solver.cpp:258]     Train net output #0: accuracy = 0.921875
+I0829 16:21:31.669389 16769 solver.cpp:258]     Train net output #1: entropy = 0.713263 (* 0.8 = 0.57061 loss)
+I0829 16:21:31.669394 16769 solver.cpp:258]     Train net output #2: loss = 0.492268 (* 1 = 0.492268 loss)
+I0829 16:21:31.669402 16769 sgd_solver.cpp:112] Iteration 390, lr = 0.000781158
+I0829 16:21:38.887042 16769 solver.cpp:347] Iteration 400, Testing net (#0)
+I0829 16:21:38.887147 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:21:38.887153 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:21:38.887158 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:21:38.887162 16769 net.cpp:676] Ignoring source layer label
+I0829 16:21:38.887166 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:21:38.887177 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:21:38.887182 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:21:38.887187 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:21:38.887193 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:21:38.887197 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:21:38.887203 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:21:38.887209 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:21:38.887213 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:21:38.887218 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:21:38.887224 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:21:38.887228 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:21:38.887233 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:21:38.887236 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:21:38.887243 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:21:44.271811 16769 solver.cpp:414]     Test net output #0: accuracy = 0.923695
+I0829 16:21:44.385645 16769 solver.cpp:239] Iteration 400 (0.786438 iter/s, 12.7156s/10 iters), loss = 1.13429
+I0829 16:21:44.385694 16769 solver.cpp:258]     Train net output #0: accuracy = 0.9375
+I0829 16:21:44.385710 16769 solver.cpp:258]     Train net output #1: entropy = 0.796424 (* 0.8 = 0.637139 loss)
+I0829 16:21:44.385718 16769 solver.cpp:258]     Train net output #2: loss = 0.497146 (* 1 = 0.497146 loss)
+I0829 16:21:44.385730 16769 sgd_solver.cpp:112] Iteration 400, lr = 0.00077697
+I0829 16:21:51.270869 16769 solver.cpp:239] Iteration 410 (1.45248 iter/s, 6.88478s/10 iters), loss = 1.1384
+I0829 16:21:51.270915 16769 solver.cpp:258]     Train net output #0: accuracy = 0.882812
+I0829 16:21:51.270931 16769 solver.cpp:258]     Train net output #1: entropy = 0.696526 (* 0.8 = 0.557221 loss)
+I0829 16:21:51.270939 16769 solver.cpp:258]     Train net output #2: loss = 0.581181 (* 1 = 0.581181 loss)
+I0829 16:21:51.270948 16769 sgd_solver.cpp:112] Iteration 410, lr = 0.000772833
+I0829 16:21:58.516957 16769 solver.cpp:347] Iteration 420, Testing net (#0)
+I0829 16:21:58.516983 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:21:58.516988 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:21:58.516993 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:21:58.516999 16769 net.cpp:676] Ignoring source layer label
+I0829 16:21:58.517002 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:21:58.517014 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:21:58.517019 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:21:58.517024 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:21:58.517033 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:21:58.517037 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:21:58.517045 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:21:58.517052 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:21:58.517056 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:21:58.517061 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:21:58.517068 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:21:58.517073 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:21:58.517077 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:21:58.517083 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:21:58.517089 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:22:01.352741 16769 blocking_queue.cpp:49] Waiting for data
+I0829 16:22:04.364843 16769 solver.cpp:414]     Test net output #0: accuracy = 0.923695
+I0829 16:22:04.484493 16769 solver.cpp:239] Iteration 420 (0.756839 iter/s, 13.2128s/10 iters), loss = 1.09244
+I0829 16:22:04.484583 16769 solver.cpp:258]     Train net output #0: accuracy = 0.914062
+I0829 16:22:04.484614 16769 solver.cpp:258]     Train net output #1: entropy = 0.729336 (* 0.8 = 0.583469 loss)
+I0829 16:22:04.484637 16769 solver.cpp:258]     Train net output #2: loss = 0.508968 (* 1 = 0.508968 loss)
+I0829 16:22:04.484659 16769 sgd_solver.cpp:112] Iteration 420, lr = 0.000768748
+I0829 16:22:11.552572 16769 solver.cpp:239] Iteration 430 (1.41491 iter/s, 7.06759s/10 iters), loss = 1.04553
+I0829 16:22:11.552680 16769 solver.cpp:258]     Train net output #0: accuracy = 0.914062
+I0829 16:22:11.552690 16769 solver.cpp:258]     Train net output #1: entropy = 0.695891 (* 0.8 = 0.556713 loss)
+I0829 16:22:11.552698 16769 solver.cpp:258]     Train net output #2: loss = 0.488814 (* 1 = 0.488814 loss)
+I0829 16:22:11.552714 16769 sgd_solver.cpp:112] Iteration 430, lr = 0.000764712
+I0829 16:22:19.048776 16769 solver.cpp:347] Iteration 440, Testing net (#0)
+I0829 16:22:19.048802 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:22:19.048807 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:22:19.048811 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:22:19.048817 16769 net.cpp:676] Ignoring source layer label
+I0829 16:22:19.048823 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:22:19.048833 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:22:19.048837 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:22:19.048843 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:22:19.048854 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:22:19.048859 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:22:19.048863 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:22:19.048872 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:22:19.048877 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:22:19.048884 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:22:19.048890 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:22:19.048895 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:22:19.048902 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:22:19.048905 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:22:19.048910 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:22:24.695983 16769 solver.cpp:414]     Test net output #0: accuracy = 0.923695
+I0829 16:22:24.823921 16769 solver.cpp:239] Iteration 440 (0.753551 iter/s, 13.2705s/10 iters), loss = 1.13899
+I0829 16:22:24.824018 16769 solver.cpp:258]     Train net output #0: accuracy = 0.875
+I0829 16:22:24.824048 16769 solver.cpp:258]     Train net output #1: entropy = 0.735173 (* 0.8 = 0.588138 loss)
+I0829 16:22:24.824074 16769 solver.cpp:258]     Train net output #2: loss = 0.550852 (* 1 = 0.550852 loss)
+I0829 16:22:24.824095 16769 sgd_solver.cpp:112] Iteration 440, lr = 0.000760726
+I0829 16:22:32.232086 16769 solver.cpp:239] Iteration 450 (1.34996 iter/s, 7.40764s/10 iters), loss = 0.930516
+I0829 16:22:32.232142 16769 solver.cpp:258]     Train net output #0: accuracy = 0.945312
+I0829 16:22:32.232157 16769 solver.cpp:258]     Train net output #1: entropy = 0.647319 (* 0.8 = 0.517855 loss)
+I0829 16:22:32.232167 16769 solver.cpp:258]     Train net output #2: loss = 0.412661 (* 1 = 0.412661 loss)
+I0829 16:22:32.232177 16769 sgd_solver.cpp:112] Iteration 450, lr = 0.000756788
+I0829 16:22:39.905575 16769 solver.cpp:347] Iteration 460, Testing net (#0)
+I0829 16:22:39.905601 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:22:39.905606 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:22:39.905609 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:22:39.905614 16769 net.cpp:676] Ignoring source layer label
+I0829 16:22:39.905619 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:22:39.905629 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:22:39.905637 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:22:39.905640 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:22:39.905649 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:22:39.905653 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:22:39.905659 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:22:39.905666 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:22:39.905673 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:22:39.905678 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:22:39.905701 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:22:39.905706 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:22:39.905730 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:22:39.905735 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:22:39.905741 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:22:42.250037 16769 blocking_queue.cpp:49] Waiting for data
+I0829 16:22:45.402199 16769 solver.cpp:414]     Test net output #0: accuracy = 0.925703
+I0829 16:22:45.516774 16769 solver.cpp:239] Iteration 460 (0.752791 iter/s, 13.2839s/10 iters), loss = 1.11505
+I0829 16:22:45.516871 16769 solver.cpp:258]     Train net output #0: accuracy = 0.886719
+I0829 16:22:45.516902 16769 solver.cpp:258]     Train net output #1: entropy = 0.64715 (* 0.8 = 0.51772 loss)
+I0829 16:22:45.516927 16769 solver.cpp:258]     Train net output #2: loss = 0.597328 (* 1 = 0.597328 loss)
+I0829 16:22:45.516950 16769 sgd_solver.cpp:112] Iteration 460, lr = 0.000752897
+I0829 16:22:53.495733 16769 solver.cpp:239] Iteration 470 (1.25338 iter/s, 7.9784s/10 iters), loss = 0.992304
+I0829 16:22:53.495774 16769 solver.cpp:258]     Train net output #0: accuracy = 0.917969
+I0829 16:22:53.495784 16769 solver.cpp:258]     Train net output #1: entropy = 0.607191 (* 0.8 = 0.485753 loss)
+I0829 16:22:53.495791 16769 solver.cpp:258]     Train net output #2: loss = 0.506551 (* 1 = 0.506551 loss)
+I0829 16:22:53.495805 16769 sgd_solver.cpp:112] Iteration 470, lr = 0.000749052
+I0829 16:23:01.111249 16769 solver.cpp:347] Iteration 480, Testing net (#0)
+I0829 16:23:01.111275 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:23:01.111280 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:23:01.111285 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:23:01.111290 16769 net.cpp:676] Ignoring source layer label
+I0829 16:23:01.111295 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:23:01.111306 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:23:01.111315 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:23:01.111320 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:23:01.111330 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:23:01.111335 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:23:01.111340 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:23:01.111349 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:23:01.111356 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:23:01.111363 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:23:01.111371 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:23:01.111382 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:23:01.111388 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:23:01.111397 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:23:01.111402 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:23:07.130187 16769 solver.cpp:414]     Test net output #0: accuracy = 0.925703
+I0829 16:23:07.246237 16769 solver.cpp:239] Iteration 480 (0.727289 iter/s, 13.7497s/10 iters), loss = 0.939234
+I0829 16:23:07.246290 16769 solver.cpp:258]     Train net output #0: accuracy = 0.929688
+I0829 16:23:07.246309 16769 solver.cpp:258]     Train net output #1: entropy = 0.596236 (* 0.8 = 0.476989 loss)
+I0829 16:23:07.246321 16769 solver.cpp:258]     Train net output #2: loss = 0.462245 (* 1 = 0.462245 loss)
+I0829 16:23:07.246336 16769 sgd_solver.cpp:112] Iteration 480, lr = 0.000745253
+I0829 16:23:14.095238 16769 solver.cpp:239] Iteration 490 (1.46016 iter/s, 6.84856s/10 iters), loss = 1.05578
+I0829 16:23:14.095324 16769 solver.cpp:258]     Train net output #0: accuracy = 0.921875
+I0829 16:23:14.095338 16769 solver.cpp:258]     Train net output #1: entropy = 0.726885 (* 0.8 = 0.581508 loss)
+I0829 16:23:14.095350 16769 solver.cpp:258]     Train net output #2: loss = 0.474275 (* 1 = 0.474275 loss)
+I0829 16:23:14.095361 16769 sgd_solver.cpp:112] Iteration 490, lr = 0.000741499
+I0829 16:23:21.473325 16769 solver.cpp:464] Snapshotting to binary proto file snapshots/aw2d-baseline_bn-alexnet_iter_500.caffemodel
+I0829 16:23:22.346086 16769 sgd_solver.cpp:284] Snapshotting solver state to binary proto file snapshots/aw2d-baseline_bn-alexnet_iter_500.solverstate
+I0829 16:23:22.743352 16769 solver.cpp:327] Iteration 500, loss = 0.985908
+I0829 16:23:22.743382 16769 solver.cpp:347] Iteration 500, Testing net (#0)
+I0829 16:23:22.743387 16769 net.cpp:676] Ignoring source layer s1_data
+I0829 16:23:22.743391 16769 net.cpp:676] Ignoring source layer s2_data
+I0829 16:23:22.743394 16769 net.cpp:676] Ignoring source layer target_data
+I0829 16:23:22.743397 16769 net.cpp:676] Ignoring source layer label
+I0829 16:23:22.743400 16769 net.cpp:676] Ignoring source layer label_label_0_split
+I0829 16:23:22.743409 16769 net.cpp:676] Ignoring source layer slicer_fc6
+I0829 16:23:22.743413 16769 net.cpp:676] Ignoring source layer fc6_source/bn
+I0829 16:23:22.743417 16769 net.cpp:676] Ignoring source layer concat_wbn_6
+I0829 16:23:22.743422 16769 net.cpp:676] Ignoring source layer slicer_fc7
+I0829 16:23:22.743424 16769 net.cpp:676] Ignoring source layer fc7_source/bn
+I0829 16:23:22.743428 16769 net.cpp:676] Ignoring source layer concat_wbn_7
+I0829 16:23:22.743433 16769 net.cpp:676] Ignoring source layer slicer_fc8
+I0829 16:23:22.743436 16769 net.cpp:676] Ignoring source layer fc8_source/bn
+I0829 16:23:22.743439 16769 net.cpp:676] Ignoring source layer concat_wbn_8
+I0829 16:23:22.743443 16769 net.cpp:676] Ignoring source layer slicer_scorer
+I0829 16:23:22.743446 16769 net.cpp:676] Ignoring source layer score_source_slicer_scorer_0_split
+I0829 16:23:22.743449 16769 net.cpp:676] Ignoring source layer loss
+I0829 16:23:22.743453 16769 net.cpp:676] Ignoring source layer entropy
+I0829 16:23:22.743455 16769 net.cpp:676] Ignoring source layer silence_target
+I0829 16:23:24.622038 16769 blocking_queue.cpp:49] Waiting for data
+I0829 16:23:28.037890 16769 solver.cpp:414]     Test net output #0: accuracy = 0.925703
+I0829 16:23:28.037923 16769 solver.cpp:332] Optimization Done.
+I0829 16:23:28.037930 16769 caffe.cpp:250] Optimization Done.
